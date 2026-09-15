@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -24,7 +25,11 @@ class User extends Authenticatable
         'password',
         'registration_date',
         'last_auth_date',
-        'traffic_limit'
+        'traffic_limit',
+        'approval_status',
+        'approved_at',
+        'approved_by',
+        'rejection_reason',
     ];
 
     protected $hidden = [
@@ -38,6 +43,7 @@ class User extends Authenticatable
         'last_auth_date' => 'datetime',
         'traffic_limit' => "integer",
         'password' => 'hashed',
+        'approved_at' => 'datetime',
     ];
 
     /**
@@ -137,5 +143,25 @@ class User extends Authenticatable
     public function getFullNameAttribute(): string
     {
         return trim("{$this->last_name} {$this->first_name} {$this->middle_name}");
+    }
+
+    public function approvedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'approved_by');
+    }
+
+    public function isApproved(): bool
+    {
+        return $this->approval_status === 'approved';
+    }
+
+    public function isPending(): bool
+    {
+        return $this->approval_status === 'pending';
+    }
+
+    public function isRejected(): bool
+    {
+        return $this->approval_status === 'rejected';
     }
 }

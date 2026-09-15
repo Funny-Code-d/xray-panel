@@ -21,6 +21,8 @@ class AdminUserSeeder extends Seeder
                 'password' => Hash::make('password'),
                 'registration_date' => now(),
                 'traffic_limit' => null, // безлимит
+                'approval_status' => 'approved',
+                'approved_at' => now(),
             ]
         );
 

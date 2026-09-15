@@ -1,0 +1,65 @@
+@import "tailwindcss";
+
+/* Активируем dark mode через класс .dark на <html> */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  /* Шрифт */
+  --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
+
+  /* Акценты */
+  --color-accent: #2563eb;
+  --color-accent-dark: #f97316;
+
+  /* Семантические цвета (light) */
+  --color-bg: #ffffff;
+  --color-fg: #000000;
+  --color-border-strong: #000000;
+  --color-shadow: #2563eb;
+
+  /* Семантические цвета (dark) */
+  --color-bg-dark: #1a0b2e;
+  --color-fg-dark: #f5f5f5;
+  --color-border-strong-dark: #f5f5f5;
+  --color-shadow-dark: #f97316;
+}
+
+/* Базовые стили */
+html, body {
+  background-color: var(--color-bg);
+  color: var(--color-fg);
+  font-family: var(--font-sans);
+  transition: background-color 0.15s, color 0.15s;
+}
+
+html.dark, html.dark body {
+  background-color: var(--color-bg-dark);
+  color: var(--color-fg-dark);
+}
+
+/* В тёмной теме подменяем переменные */
+html.dark {
+  --color-shadow: var(--color-shadow-dark);
+  --color-bg: var(--color-bg-dark);
+  --color-fg: var(--color-fg-dark);
+}
+
+/* Утилиты для «жёстких» теней */
+@layer utilities {
+  .shadow-brutal {
+    box-shadow: 6px 6px 0 var(--color-shadow);
+  }
+
+  .shadow-brutal-sm {
+    box-shadow: 3px 3px 0 var(--color-shadow);
+  }
+
+  .shadow-brutal-lg {
+    box-shadow: 8px 8px 0 var(--color-shadow);
+  }
+
+  .shadow-brutal-hover:hover {
+    box-shadow: 3px 3px 0 var(--color-shadow);
+    transform: translate(3px, 3px);
+  }
+}

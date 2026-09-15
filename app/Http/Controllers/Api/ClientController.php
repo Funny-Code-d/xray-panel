@@ -40,35 +40,30 @@ class ClientController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
+        $user = $request->user();
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:100'],
             'expires_at' => ['nullable', 'date', 'after:now'],
-            // user_id может передать только админ
             'user_id' => [
-                Rule::requiredIf(fn () => $request->user()->isAdmin()),
+                // Обязательно только для админа, и только если он явно указал "другого" пользователя
+                'nullable',
                 'integer',
                 'exists:users,id',
             ],
         ]);
 
-        $user = $request->user();
-
-        // Если админ не указал user_id — создаём для себя
-        $targetUserId = $user->isAdmin() && isset($validated['user_id'])
+        // Если админ передал user_id — создаём для него. Иначе — для себя.
+        $targetUserId = $user->isAdmin() && !empty($validated['user_id'])
             ? $validated['user_id']
             : $user->id;
-
-        // Проверка: обычный пользователь не может создать ключ другому
-        if (! $user->isAdmin() && $targetUserId !== $user->id) {
-            return response()->json(['message' => 'Доступ запрещён.'], 403);
-        }
 
         $client = VpnClient::create([
             'user_id' => $targetUserId,
             'name' => $validated['name'],
             'expires_at' => $validated['expires_at'] ?? null,
         ]);
-
+        $client->refresh();
         $client->load('user:id,first_name,last_name,email');
 
         return response()->json($client, 201);
@@ -126,5 +121,19 @@ class ClientController extends Controller
         if (! $user->isAdmin() && $client->user_id !== $user->id) {
             abort(403, 'Доступ запрещён.');
         }
+    }
+
+    public function config(Request $request, VpnClient $client): JsonResponse
+    {
+        $this->authorizeAccess($request, $client);
+
+        return response()->json([
+            'client_id' => $client->id,
+            'name' => $client->name,
+            'email' => $client->email,
+            'vmess_link' => $client->vmess_link,
+            'is_active' => $client->is_active,
+            'expires_at' => $client->expires_at,
+        ]);
     }
 }

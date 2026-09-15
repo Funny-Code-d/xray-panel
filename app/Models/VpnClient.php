@@ -77,4 +77,37 @@ class VpnClient extends Model
     {
         return $this->formatBytes($this->traffic_used);
     }
+
+    /**
+     * Сгенерировать vmess:// ссылку для подключения.
+     */
+    public function getVmessLinkAttribute(): string
+    {
+        $config = config('services.xray');
+
+        $payload = [
+            'v' => '2',
+            'ps' => $this->name,
+            'add' => $config['host'],
+            'port' => (string) $config['port'],
+            'id' => $this->uuid,
+            'aid' => (string) $config['alter_id'],
+            'scy' => 'auto',
+            'net' => $config['network'],
+            'type' => 'none',
+            'host' => '',
+            'path' => $config['path'],
+            'tls' => 'none',
+        ];
+
+        // TLS добавляем только если он настроен
+        if (!empty($config['tls'])) {
+            $payload['tls'] = $config['tls'];
+            $payload['sni'] = $config['sni'] ?: $config['host'];
+        }
+
+        $json = json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
+        return 'vmess://' . base64_encode($json);
+    }
 }

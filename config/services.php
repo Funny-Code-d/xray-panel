@@ -13,6 +13,15 @@ return [
     | a conventional file to locate the various service credentials.
     |
     */
+    'xray' => [
+        'host' => env('XRAY_SERVER_HOST', 'vpn.example.com'),
+        'port' => (int) env('XRAY_SERVER_PORT', 80),
+        'network' => env('XRAY_SERVER_NETWORK', 'ws'),
+        'path' => env('XRAY_SERVER_PATH', '/api/v2/download'),
+        'tls' => env('XRAY_SERVER_TLS', ''),
+        'sni' => env('XRAY_SERVER_SNI', ''),
+        'alter_id' => (int) env('XRAY_SERVER_ALTER_ID', 0),
+    ],
 
     'postmark' => [
         'key' => env('POSTMARK_API_KEY'),
