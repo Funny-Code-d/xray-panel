@@ -89,24 +89,28 @@ class VpnClient extends Model
             'v' => '2',
             'ps' => $this->name,
             'add' => $config['host'],
-            'port' => (string) $config['port'],
+            'port' => (int) $config['port'],           // число, не строка
             'id' => $this->uuid,
-            'aid' => (string) $config['alter_id'],
-            'scy' => 'auto',
+            'aid' => (int) $config['alter_id'],        // число, не строка
             'net' => $config['network'],
             'type' => 'none',
-            'host' => '',
+            'host' => '',                              // ← пустая строка
             'path' => $config['path'],
-            'tls' => 'none',
+            'tls' => 'none',                           // ← явно "none"
         ];
 
-        // TLS добавляем только если он настроен
+        // Если TLS настроен — перезаписываем tls/sni/host
         if (!empty($config['tls'])) {
             $payload['tls'] = $config['tls'];
             $payload['sni'] = $config['sni'] ?: $config['host'];
+            $payload['host'] = $config['host'];         // для TLS host нужен
         }
 
-        $json = json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        // JSON с человекочитаемым форматом: отступы, кириллица, без экранирования слешей
+        $json = json_encode(
+            $payload,
+            JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT
+        );
 
         return 'vmess://' . base64_encode($json);
     }

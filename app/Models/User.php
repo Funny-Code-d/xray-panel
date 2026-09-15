@@ -30,6 +30,10 @@ class User extends Authenticatable
         'approved_at',
         'approved_by',
         'rejection_reason',
+        'is_blocked',
+        'blocked_at',
+        'block_reason',
+        'blocked_by',
     ];
 
     protected $hidden = [
@@ -44,6 +48,8 @@ class User extends Authenticatable
         'traffic_limit' => "integer",
         'password' => 'hashed',
         'approved_at' => 'datetime',
+        'is_blocked' => 'boolean',
+        'blocked_at' => 'datetime',
     ];
 
     /**
@@ -163,5 +169,15 @@ class User extends Authenticatable
     public function isRejected(): bool
     {
         return $this->approval_status === 'rejected';
+    }
+
+    public function isBlocked(): bool
+    {
+        return $this->is_blocked;
+    }
+
+    public function blockedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'blocked_by');
     }
 }

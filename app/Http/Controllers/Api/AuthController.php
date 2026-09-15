@@ -123,6 +123,8 @@ class AuthController extends Controller
             'traffic_used' => $user->total_traffic_used,
             'registration_date' => $user->registration_date,
             'last_auth_date' => $user->last_auth_date,
+            'is_blocked' => $user->is_blocked,
+            'block_reason' => $user->block_reason,
         ];
     }
 }

@@ -37,6 +37,14 @@ async function handleLogout() {
               >
                 Мои ключи
               </RouterLink>
+              <RouterLink
+                v-if="auth.isAdmin"
+                :to="{ name: 'admin-applications' }"
+                class="text-sm font-bold uppercase tracking-wide hover:text-blue-600 dark:hover:text-orange-500 transition"
+                active-class="text-blue-600 dark:text-orange-500"
+                >
+                Админка
+              </RouterLink>
             </div>
           </div>
 

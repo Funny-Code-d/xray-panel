@@ -47,19 +47,19 @@ html.dark {
 /* Утилиты для «жёстких» теней */
 @layer utilities {
   .shadow-brutal {
-    box-shadow: 6px 6px 0 var(--color-shadow);
+    box-shadow: 10px 10px 0 var(--color-shadow);
   }
 
   .shadow-brutal-sm {
-    box-shadow: 3px 3px 0 var(--color-shadow);
+    box-shadow: 7px 7px 0 var(--color-shadow);
   }
 
   .shadow-brutal-lg {
-    box-shadow: 8px 8px 0 var(--color-shadow);
+    box-shadow: 12px 12px 0 var(--color-shadow);
   }
 
   .shadow-brutal-hover:hover {
-    box-shadow: 3px 3px 0 var(--color-shadow);
+    box-shadow: 7px 7px 0 var(--color-shadow);
     transform: translate(3px, 3px);
   }
 }

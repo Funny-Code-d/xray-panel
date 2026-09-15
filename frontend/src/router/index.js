@@ -32,6 +32,30 @@ const routes = [
     component: () => import('@/pages/ClientsPage.vue'),
     meta: { requiresAuth: true },
   },
+  {
+    path: '/admin/applications',
+    name: 'admin-applications',
+    component: () => import('@/pages/admin/ApplicationsPage.vue'),
+    meta: { requiresAuth: true, requiresAdmin: true },
+  },
+  {
+    path: '/admin/users',
+    name: 'admin-users',
+    component: () => import('@/pages/admin/UsersPage.vue'),
+    meta: { requiresAuth: true, requiresAdmin: true },
+  },
+  {
+    path: '/admin/users/:id',
+    name: 'admin-user',
+    component: () => import('@/pages/AdminUserPage.vue'),
+    meta: { requiresAuth: true, requiresAdmin: true },
+  },
+  {
+    path: '/blocked',
+    name: 'blocked',
+    component: () => import('@/pages/BlockedPage.vue'),
+    meta: { requiresAuth: true },
+  },
 ]
 
 const router = createRouter({
@@ -46,15 +70,28 @@ router.beforeEach((to, from, next) => {
     return next({ name: 'login' })
   }
 
-  // Pending/rejected → только на /pending
-  if (auth.isAuthenticated && !auth.isApproved && !auth.isAdmin) {
+  // Заблокированный → только /blocked
+  if (auth.isAuthenticated && auth.user?.is_blocked && to.name !== 'blocked') {
+    return next({ name: 'blocked' })
+  }
+
+  // Разблокированный, но идёт на /blocked → на dashboard
+  if (auth.isAuthenticated && !auth.user?.is_blocked && to.name === 'blocked') {
+    return next({ name: 'dashboard' })
+  }
+
+  if (to.meta.requiresAdmin && !auth.isAdmin) {
+    return next({ name: 'dashboard' })
+  }
+
+  if (auth.isAuthenticated && !auth.isApproved && !auth.isAdmin && !auth.user?.is_blocked) {
     if (to.name !== 'pending') {
       return next({ name: 'pending' })
     }
     return next()
   }
 
-  if (auth.isAuthenticated && (auth.isApproved || auth.isAdmin) && to.name === 'pending') {
+  if (auth.isAuthenticated && (auth.isApproved || auth.isAdmin) && to.name === 'pending' && !auth.user?.is_blocked) {
     return next({ name: 'dashboard' })
   }
 

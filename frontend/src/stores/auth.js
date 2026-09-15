@@ -11,6 +11,7 @@ export const useAuthStore = defineStore('auth', () => {
   const isApproved = computed(() => user.value?.approval_status === 'approved')
   const isPending = computed(() => user.value?.approval_status === 'pending')
   const isRejected = computed(() => user.value?.approval_status === 'rejected')
+  const isBlocked = computed(() => user.value?.is_blocked === true)
 
   function saveSession(data) {
     token.value = data.token
@@ -56,6 +57,6 @@ export const useAuthStore = defineStore('auth', () => {
   return {
     token, user,
     isAuthenticated, isAdmin, isApproved, isPending, isRejected,
-    login, register, logout, fetchMe,
+    login, register, logout, fetchMe, isBlocked,
   }
 })
