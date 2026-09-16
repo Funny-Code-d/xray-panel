@@ -10,6 +10,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use App\Models\Role;
+use Illuminate\Support\Facades\Password;
+use Illuminate\Auth\Events\PasswordReset;
+use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
@@ -123,8 +126,94 @@ class AuthController extends Controller
             'traffic_used' => $user->total_traffic_used,
             'registration_date' => $user->registration_date,
             'last_auth_date' => $user->last_auth_date,
+            'vpn_clients_count' => $user->vpnClients()->count(),
             'is_blocked' => $user->is_blocked,
             'block_reason' => $user->block_reason,
         ];
+    }
+
+    public function changePassword(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'current_password' => ['required', 'string'],
+            'new_password' => ['required', 'string', 'min:8', 'confirmed'],
+        ]);
+
+        $user = $request->user();
+
+        // Проверяем текущий пароль
+        if (! Hash::check($validated['current_password'], $user->password)) {
+            throw ValidationException::withMessages([
+                'current_password' => ['Текущий пароль неверен.'],
+            ]);
+        }
+
+        // Обновляем пароль (хешируется автоматически через cast)
+        $user->update(['password' => $validated['new_password']]);
+
+        // Отзываем все токены, кроме текущего
+        $currentTokenId = $user->currentAccessToken()->id;
+        $user->tokens()->where('id', '!=', $currentTokenId)->delete();
+
+        return response()->json([
+            'message' => 'Пароль успешно изменён.',
+        ]);
+    }
+
+    /**
+     * Отправить ссылку для сброса пароля.
+     */
+    public function forgotPassword(Request $request): JsonResponse
+    {
+        $request->validate([
+            'email' => ['required', 'email'],
+        ]);
+
+        $status = Password::sendResetLink(
+            $request->only('email')
+        );
+
+        // Всегда возвращаем успех — не раскрываем, существует ли email
+        return response()->json([
+            'message' => 'Если такой email зарегистрирован, ссылка для сброса отправлена.',
+        ]);
+    }
+
+    /**
+     * Сбросить пароль по токену.
+     */
+    public function resetPassword(Request $request): JsonResponse
+    {
+        $request->validate([
+            'token' => ['required', 'string'],
+            'email' => ['required', 'email'],
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
+        ]);
+
+        $status = Password::reset(
+            $request->only('email', 'password', 'password_confirmation', 'token'),
+            function ($user, $password) {
+                $user->forceFill([
+                    'password' => $password,
+                ])->setRememberToken(Str::random(60));
+
+                $user->save();
+
+                event(new PasswordReset($user));
+
+                // Отзываем все токены — пользователь должен залогиниться заново
+                $user->tokens()->delete();
+            }
+        );
+
+        if ($status === Password::PASSWORD_RESET) {
+            return response()->json([
+                'message' => 'Пароль успешно сброшен. Войдите с новым паролем.',
+            ]);
+        }
+
+        throw ValidationException::withMessages([
+            'email' => [__($status)],
+        ]);
     }
 }

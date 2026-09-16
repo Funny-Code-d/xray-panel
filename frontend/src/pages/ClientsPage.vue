@@ -79,12 +79,10 @@ async function copyLink(client) {
 }
 
 async function copyToClipboard(text) {
-  // Современный API (работает в HTTPS и localhost)
   if (navigator.clipboard && window.isSecureContext) {
     return navigator.clipboard.writeText(text)
   }
 
-  // Fallback для http://192.168.x.x
   const textarea = document.createElement('textarea')
   textarea.value = text
   textarea.style.position = 'fixed'
@@ -177,9 +175,10 @@ async function handleDelete() {
           </thead>
           <tbody>
             <tr
-              v-for="client in clients"
+              v-for="(client, index) in clients"
               :key="client.id"
-              class="border-b-2 border-black/10 dark:border-white/10 last:border-0 hover:bg-slate-50 dark:hover:bg-[#1a0b2e]"
+              class="animate-list-item border-b-2 border-black/10 dark:border-white/10 last:border-0 hover:bg-slate-50 dark:hover:bg-[#1a0b2e]"
+              :style="{ animationDelay: `${Math.min(index, 10) * 30}ms` }"
             >
               <td class="px-4 py-3 font-bold">{{ client.name }}</td>
               <td class="px-4 py-3 text-sm font-mono opacity-70">{{ client.email }}</td>
@@ -227,9 +226,10 @@ async function handleDelete() {
       <!-- Мобильный: карточки -->
       <div class="md:hidden space-y-4">
         <div
-          v-for="client in clients"
+          v-for="(client, index) in clients"
           :key="client.id"
-          class="bg-white dark:bg-[#2a1548] border-2 border-black dark:border-white shadow-brutal p-4"
+          class="animate-list-item bg-white dark:bg-[#2a1548] border-2 border-black dark:border-white shadow-brutal p-4"
+          :style="{ animationDelay: `${Math.min(index, 10) * 30}ms` }"
         >
           <div class="flex justify-between items-start mb-3">
             <div class="min-w-0">

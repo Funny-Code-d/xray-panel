@@ -26,7 +26,7 @@ async function handleSubmit() {
 
   try {
     await auth.register(form.value)
-    // После регистрации — всегда на /pending
+    // После регистрации — на страницу ожидания одобрения
     router.push({ name: 'pending' })
   } catch (e) {
     if (e.response?.status === 422) {
@@ -43,13 +43,16 @@ async function handleSubmit() {
 <template>
   <div class="min-h-screen flex items-center justify-center bg-white dark:bg-[#1a0b2e] px-4 py-12">
     <div class="w-full max-w-md">
+      <!-- Заголовок -->
       <div class="text-center mb-8">
         <h1 class="text-4xl font-black uppercase tracking-wider">VPN Panel</h1>
         <p class="mt-2 text-sm opacity-70">Создайте аккаунт</p>
       </div>
 
+      <!-- Карточка формы -->
       <div class="bg-white dark:bg-[#2a1548] border-2 border-black dark:border-white shadow-brutal p-8">
-        <form @submit.prevent="handleSubmit" class="space-y-5">
+        <form @submit.prevent="handleSubmit" class="space-y-4">
+          <!-- Имя и Фамилия -->
           <div class="grid grid-cols-2 gap-3">
             <Input
               v-model="form.last_name"
@@ -63,6 +66,7 @@ async function handleSubmit() {
             />
           </div>
 
+          <!-- Отчество -->
           <Input
             v-model="form.middle_name"
             label="Отчество"
@@ -70,6 +74,7 @@ async function handleSubmit() {
             :error="errors.middle_name?.[0]"
           />
 
+          <!-- Email -->
           <Input
             v-model="form.email"
             type="email"
@@ -78,6 +83,7 @@ async function handleSubmit() {
             :error="errors.email?.[0]"
           />
 
+          <!-- Телефон -->
           <Input
             v-model="form.phone"
             type="tel"
@@ -86,6 +92,7 @@ async function handleSubmit() {
             :error="errors.phone?.[0]"
           />
 
+          <!-- Пароль -->
           <Input
             v-model="form.password"
             type="password"
@@ -94,6 +101,7 @@ async function handleSubmit() {
             :error="errors.password?.[0]"
           />
 
+          <!-- Подтверждение пароля -->
           <Input
             v-model="form.password_confirmation"
             type="password"
@@ -101,18 +109,28 @@ async function handleSubmit() {
             placeholder="••••••••"
           />
 
-          <Button type="submit" :loading="loading" class="w-full">
+          <!-- Кнопка -->
+          <Button type="submit" :loading="loading" class="w-full !mt-6">
             Зарегистрироваться
           </Button>
         </form>
 
+        <!-- Ссылка на логин -->
         <p class="mt-6 text-center text-sm opacity-70">
           Уже есть аккаунт?
-          <RouterLink :to="{ name: 'login' }" class="font-bold underline hover:opacity-80">
+          <RouterLink
+            :to="{ name: 'login' }"
+            class="font-bold underline hover:opacity-80"
+          >
             Войти
           </RouterLink>
         </p>
       </div>
+
+      <!-- Подсказка про модерацию -->
+      <p class="mt-6 text-xs text-center opacity-50">
+        После регистрации аккаунт требует подтверждения администратором.
+      </p>
     </div>
   </div>
 </template>

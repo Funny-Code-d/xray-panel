@@ -51,17 +51,11 @@ function resetFilters() {
   fetchUsers(1)
 }
 
-/**
- * Бейдж пользователя.
- * Блокировка важнее статуса одобрения.
- */
 function userBadge(user) {
-  // Блокировка — приоритетнее
   if (user.is_blocked) {
     return {
       label: 'Заблокирован',
       class: 'bg-red-600 text-white border-red-700',
-      blocked: true,
     }
   }
 
@@ -83,7 +77,6 @@ function userBadge(user) {
   return map[user.approval_status] || {
     label: user.approval_status,
     class: 'bg-slate-100 text-slate-700 border-slate-700',
-    blocked: false,
   }
 }
 </script>
@@ -170,9 +163,10 @@ function userBadge(user) {
             </thead>
             <tbody>
               <tr
-                v-for="user in users"
+                v-for="(user, index) in users"
                 :key="user.id"
-                class="border-b-2 border-black/10 dark:border-white/10 last:border-0 hover:bg-slate-50 dark:hover:bg-[#1a0b2e] cursor-pointer"
+                class="animate-list-item border-b-2 border-black/10 dark:border-white/10 last:border-0 hover:bg-slate-50 dark:hover:bg-[#1a0b2e] cursor-pointer"
+                :style="{ animationDelay: `${Math.min(index, 10) * 30}ms` }"
                 @click="$router.push({ name: 'admin-user', params: { id: user.id } })"
               >
                 <td class="px-4 py-3 font-bold">
@@ -195,7 +189,6 @@ function userBadge(user) {
                       userBadge(user).class,
                     ]"
                   >
-                    <!-- Иконка замка для заблокированных -->
                     <svg
                       v-if="user.is_blocked"
                       xmlns="http://www.w3.org/2000/svg"
@@ -225,10 +218,11 @@ function userBadge(user) {
         <!-- Мобильный: карточки -->
         <div class="md:hidden space-y-3">
           <RouterLink
-            v-for="user in users"
+            v-for="(user, index) in users"
             :key="user.id"
             :to="{ name: 'admin-user', params: { id: user.id } }"
-            class="block bg-white dark:bg-[#2a1548] border-2 border-black dark:border-white shadow-brutal p-4"
+            class="animate-list-item block bg-white dark:bg-[#2a1548] border-2 border-black dark:border-white shadow-brutal p-4"
+            :style="{ animationDelay: `${Math.min(index, 10) * 30}ms` }"
           >
             <div class="flex justify-between items-start mb-2">
               <div class="min-w-0">
@@ -238,7 +232,6 @@ function userBadge(user) {
                 <p class="text-xs font-mono opacity-70 truncate">{{ user.email }}</p>
               </div>
 
-              <!-- Бейдж -->
               <span
                 :class="[
                   'inline-flex items-center gap-1 px-2 py-0.5 text-xs font-bold uppercase border-2 whitespace-nowrap ml-2 shrink-0',
@@ -267,7 +260,6 @@ function userBadge(user) {
               <span>{{ formatDate(user.registration_date) }}</span>
             </div>
 
-            <!-- Роли -->
             <div v-if="user.roles?.length" class="flex gap-1 mt-2 flex-wrap">
               <span
                 v-for="role in user.roles"

@@ -15,7 +15,7 @@ async function handleLogout() {
 
 <template>
   <div class="min-h-screen bg-white dark:bg-[#1a0b2e]">
-    <nav class="bg-white dark:bg-[#2a1548] border-b-2 border-black dark:border-white">
+    <nav class="bg-white dark:bg-[#2a1548] border-b-2 border-black dark:border-white animate-nav">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between items-center h-16">
           <div class="flex items-center gap-8">

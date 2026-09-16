@@ -13,13 +13,25 @@ const routes = [
     name: 'register',
     component: () => import('@/pages/RegisterPage.vue'),
     meta: { guest: true },
-    },
-    {
+  },
+  {
+    path: '/forgot-password',
+    name: 'forgot-password',
+    component: () => import('@/pages/ForgotPasswordPage.vue'),
+    meta: { guest: true },
+  },
+  {
+    path: '/reset-password',
+    name: 'reset-password',
+    component: () => import('@/pages/ResetPasswordPage.vue'),
+    meta: { guest: true },
+  },
+  {
     path: '/pending',
     name: 'pending',
     component: () => import('@/pages/PendingPage.vue'),
     meta: { requiresAuth: true },
-    },
+  },
   {
     path: '/',
     name: 'dashboard',

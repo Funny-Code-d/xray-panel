@@ -29,30 +29,32 @@ function onKey(e) {
 
 <template>
   <Teleport to="body">
-    <div
-      v-if="modelValue"
-      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
-      @click.self="close"
-    >
-      <div class="w-full max-w-md bg-white dark:bg-[#2a1548] border-2 border-black dark:border-white shadow-brutal-lg">
-        <!-- Заголовок -->
-        <div class="flex justify-between items-center px-6 py-4 border-b-2 border-black dark:border-white">
-          <h2 class="text-lg font-black uppercase tracking-wider">{{ title }}</h2>
-          <button
-            @click="close"
-            class="w-8 h-8 inline-flex items-center justify-center border-2 border-black dark:border-white hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-[#1a0b2e] transition-all"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="square">
-              <path d="M18 6L6 18M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
+    <Transition name="modal">
+      <div
+        v-if="modelValue"
+        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 animate-overlay"
+        @click.self="close"
+      >
+        <div class="w-full max-w-md bg-white dark:bg-[#2a1548] border-2 border-black dark:border-white shadow-brutal-lg animate-modal">
+          <!-- Заголовок -->
+          <div class="flex justify-between items-center px-6 py-4 border-b-2 border-black dark:border-white">
+            <h2 class="text-lg font-black uppercase tracking-wider">{{ title }}</h2>
+            <button
+              @click="close"
+              class="w-8 h-8 inline-flex items-center justify-center border-2 border-black dark:border-white hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-[#1a0b2e] transition-all"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="square">
+                <path d="M18 6L6 18M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
 
-        <!-- Контент -->
-        <div class="p-6">
-          <slot />
+          <!-- Контент -->
+          <div class="p-6">
+            <slot />
+          </div>
         </div>
       </div>
-    </div>
+    </Transition>
   </Teleport>
 </template>

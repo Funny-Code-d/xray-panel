@@ -180,4 +180,9 @@ class User extends Authenticatable
     {
         return $this->belongsTo(User::class, 'blocked_by');
     }
+
+    public function sendPasswordResetNotification($token): void
+    {
+        $this->notify(new \App\Notifications\ResetPasswordNotification($token));
+    }
 }
