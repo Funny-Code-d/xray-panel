@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
 import QRCode from 'qrcode'
 import Modal from '@/components/ui/Modal.vue'
 import Button from '@/components/ui/Button.vue'
@@ -17,6 +17,21 @@ const config = ref(null)
 const qrDataUrl = ref('')
 const copied = ref(false)
 
+// Текущая ссылка в зависимости от протокола
+const currentLink = computed(() => {
+  if (!config.value) return ''
+
+  return config.value.protocol === 'vless'
+    ? config.value.vless_link
+    : config.value.vmess_link
+})
+
+// Человекочитаемое название протокола
+const protocolLabel = computed(() => {
+  if (!config.value) return ''
+  return config.value.protocol === 'vless' ? 'VLESS + Reality' : 'VMess'
+})
+
 watch(() => props.modelValue, async (open) => {
   if (!open || !props.clientId) return
 
@@ -30,16 +45,7 @@ watch(() => props.modelValue, async (open) => {
     const { data } = await api.get(`/clients/${props.clientId}/config`)
     config.value = data
 
-    // Генерируем QR как DataURL (PNG)
-    qrDataUrl.value = await QRCode.toDataURL(data.vmess_link, {
-      width: 400,
-      margin: 1,
-      color: {
-        dark: '#000000',
-        light: '#ffffff',
-      },
-      errorCorrectionLevel: 'M',
-    })
+    await regenerateQr()
   } catch (e) {
     error.value = e.response?.data?.message || 'Не удалось загрузить конфиг'
   } finally {
@@ -47,17 +53,35 @@ watch(() => props.modelValue, async (open) => {
   }
 })
 
+async function regenerateQr() {
+  if (!currentLink.value) {
+    qrDataUrl.value = ''
+    return
+  }
+
+  qrDataUrl.value = await QRCode.toDataURL(currentLink.value, {
+    width: 400,
+    margin: 1,
+    color: {
+      dark: '#000000',
+      light: '#ffffff',
+    },
+    errorCorrectionLevel: 'M',
+  })
+}
+
 async function copyLink() {
-  if (!config.value?.vmess_link) return
+  if (!currentLink.value) return
 
   try {
-    await navigator.clipboard.writeText(config.value.vmess_link)
+    await navigator.clipboard.writeText(currentLink.value)
     copied.value = true
     setTimeout(() => { copied.value = false }, 2000)
   } catch (e) {
-    // Fallback для старых браузеров
     const textarea = document.createElement('textarea')
-    textarea.value = config.value.vmess_link
+    textarea.value = currentLink.value
+    textarea.style.position = 'fixed'
+    textarea.style.opacity = '0'
     document.body.appendChild(textarea)
     textarea.select()
     document.execCommand('copy')
@@ -95,18 +119,30 @@ async function copyLink() {
         <p class="text-xs font-mono opacity-60 mt-1">{{ config.email }}</p>
       </div>
 
-      <!-- QR-код -->
+      <!-- Бейдж протокола -->
       <div class="flex justify-center">
+        <span class="inline-block px-3 py-1 text-xs font-bold uppercase tracking-wider border-2 border-black dark:border-white">
+          {{ protocolLabel }}
+        </span>
+      </div>
+
+      <!-- QR-код -->
+      <div v-if="qrDataUrl" class="flex justify-center">
         <div class="bg-white border-2 border-black dark:border-white p-3">
           <img :src="qrDataUrl" alt="QR-код" class="w-64 h-64" />
         </div>
+      </div>
+
+      <!-- Нет ссылки -->
+      <div v-else class="text-center py-4 opacity-60">
+        <p class="text-sm">Ссылка недоступна</p>
       </div>
 
       <!-- Инструкция -->
       <div class="bg-slate-50 dark:bg-[#1a0b2e] border-2 border-black dark:border-white p-4">
         <p class="text-xs font-bold uppercase tracking-wider mb-2">Как подключиться</p>
         <ol class="text-xs space-y-1 opacity-80 list-decimal list-inside">
-          <li>Установите VPN-клиент: <b>v2rayNG</b> (Android) или <b>V2RayTun</b> (iOS)</li>
+          <li>Установите VPN-клиент: <b>OneXray</b>, <b>v2rayTun</b> (iOS) или <b>v2rayNG</b> (Android)</li>
           <li>Откройте клиент → «Импорт из QR-кода»</li>
           <li>Наведите камеру на этот код</li>
           <li>Нажмите «Подключиться»</li>
@@ -120,7 +156,7 @@ async function copyLink() {
         </label>
         <div class="flex gap-2">
           <input
-            :value="config.vmess_link"
+            :value="currentLink"
             readonly
             class="flex-1 px-3 py-2 text-xs font-mono bg-slate-50 dark:bg-[#1a0b2e] border-2 border-black dark:border-white focus:outline-none"
           />

@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\AuthController;
 use \App\Http\Controllers\Api\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Api\ClientController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\XrayConfigController;
 
 /*
 |--------------------------------------------------------------------------
@@ -16,6 +17,7 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
 Route::post('/reset-password', [AuthController::class, 'resetPassword']);
+Route::get('/xray/config', [XrayConfigController::class, 'show']);
 
 /*
 |--------------------------------------------------------------------------

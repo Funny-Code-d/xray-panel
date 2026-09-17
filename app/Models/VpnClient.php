@@ -12,8 +12,11 @@ class VpnClient extends Model
 {
     use HasFactory;
 
+    protected $appends = ['vmess_link', 'vless_link'];
+
     protected $fillable = [
         'user_id',
+        'xray_server_id',
         'uuid',
         'email',
         'name',
@@ -125,5 +128,23 @@ class VpnClient extends Model
     public function trafficStats(): HasMany
     {
         return $this->hasMany(TrafficStat::class);
+    }
+
+    public function xrayServer(): BelongsTo
+    {
+        return $this->belongsTo(XrayServer::class);
+    }
+
+    /**
+     * Сгенерировать vless:// ссылку.
+     * Требует загруженной связи xrayServer.
+     */
+    public function getVlessLinkAttribute(): ?string
+    {
+        if (!$this->xrayServer) {
+            return null;
+        }
+
+        return $this->xrayServer->buildVlessLink($this->uuid, $this->name);
     }
 }

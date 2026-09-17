@@ -10,10 +10,11 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        // 1. Сначала роли
+        // 1. Справочники
         $this->call([
             RoleSeeder::class,
             AdminUserSeeder::class,
+            XrayServerSeeder::class,  // ← добавить
         ]);
 
         // 2. Демо-данные только локально
@@ -24,12 +25,17 @@ class DatabaseSeeder extends Seeder
             $userRole = \App\Models\Role::where('code', 'user')->first();
             $users->each(fn ($user) => $user->roles()->attach($userRole->id));
 
+            // Первый сервер — для демо-ключей
+            $server = \App\Models\XrayServer::where('is_active', true)->first();
+
             // Каждому — 1-3 VPN-ключа
-            $users->each(function (User $user) {
+            $users->each(function (User $user) use ($server) {
                 VpnClient::factory()
                     ->count(rand(1, 3))
                     ->for($user)
-                    ->create();
+                    ->create([
+                        'xray_server_id' => $server?->id,
+                    ]);
             });
         }
     }

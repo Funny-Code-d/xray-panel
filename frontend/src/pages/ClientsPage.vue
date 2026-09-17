@@ -70,7 +70,17 @@ function openQr(client) {
 async function copyLink(client) {
   try {
     const { data } = await api.get(`/clients/${client.id}/config`)
-    await copyToClipboard(data.vmess_link)
+
+    const link = data.protocol === 'vless'
+      ? data.vless_link
+      : data.vmess_link
+
+    if (!link) {
+      alert('Ссылка недоступна')
+      return
+    }
+
+    await copyToClipboard(link)
     copiedId.value = client.id
     setTimeout(() => { copiedId.value = null }, 2000)
   } catch (e) {
