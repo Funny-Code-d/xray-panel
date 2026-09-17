@@ -20,6 +20,11 @@ return Application::configure(basePath: dirname(__DIR__))
             'approved' => EnsureUserIsApproved::class,
             'not_blocked' => EnsureUserIsNotBlocked::class,
         ]);
+
+        // ← добавь эту строку
+        $middleware->api(prepend: [
+            \App\Http\Middleware\ForceJsonResponse::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

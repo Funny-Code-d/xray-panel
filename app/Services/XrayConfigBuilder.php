@@ -10,9 +10,6 @@ class XrayConfigBuilder
         protected XrayServer $server,
     ) {}
 
-    /**
-     * Собрать полный конфиг Xray для сервера.
-     */
     public function build(): array
     {
         return [
@@ -58,12 +55,9 @@ class XrayConfigBuilder
         ];
     }
 
-    /**
-     * Собрать inbound с активными клиентами.
-     */
     protected function buildInbound(): array
     {
-        $inbound = [
+        return [
             'listen' => '0.0.0.0',
             'port' => $this->server->port,
             'protocol' => $this->server->protocol,
@@ -76,12 +70,12 @@ class XrayConfigBuilder
                 'routeOnly' => false,
             ],
         ];
-
-        return $inbound;
     }
 
     /**
-     * Настройки inbound в зависимости от протокола.
+     * Настройки inbound. Для VLESS fallbacks НЕ используем —
+     * он не работает с security: reality. Вместо этого
+     * realitySettings.dest указывает на Nginx.
      */
     protected function buildInboundSettings(): array
     {
@@ -96,6 +90,7 @@ class XrayConfigBuilder
             return [
                 'clients' => $clients,
                 'decryption' => 'none',
+                // fallbacks убраны — несовместимы с reality
             ];
         }
 
@@ -105,9 +100,6 @@ class XrayConfigBuilder
         ];
     }
 
-    /**
-     * Настройки одного клиента.
-     */
     protected function buildClient($client): array
     {
         if ($this->server->protocol === 'vless') {
@@ -118,7 +110,6 @@ class XrayConfigBuilder
             ];
         }
 
-        // vmess
         return [
             'id' => $client->uuid,
             'alterId' => $this->server->alter_id ?? 0,
@@ -126,9 +117,6 @@ class XrayConfigBuilder
         ];
     }
 
-    /**
-     * Настройки транспорта и безопасности.
-     */
     protected function buildStreamSettings(): array
     {
         $settings = [
@@ -136,24 +124,24 @@ class XrayConfigBuilder
             'security' => $this->server->security,
         ];
 
-        // Reality
+        // Reality: dest указывает на Nginx (127.0.0.1:8443),
+        // чтобы незнакомые SNI (например, funny-code.space)
+        // получали сертификат от Nginx, а не от чужого сайта.
         if ($this->server->security === 'reality') {
             $settings['realitySettings'] = [
-                'dest' => $this->server->reality_dest,
+                'dest' => '127.0.0.1:8443',
                 'serverNames' => $this->server->reality_server_names,
                 'privateKey' => $this->server->reality_private_key,
                 'shortIds' => $this->server->reality_short_ids,
             ];
         }
 
-        // TLS
         if ($this->server->security === 'tls') {
             $settings['tlsSettings'] = [
                 'serverName' => $this->server->primary_server_name,
             ];
         }
 
-        // WebSocket
         if ($this->server->network === 'ws' && $this->server->ws_path) {
             $settings['wsSettings'] = [
                 'path' => $this->server->ws_path,
