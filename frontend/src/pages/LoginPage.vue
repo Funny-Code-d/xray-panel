@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import Button from '@/components/ui/Button.vue'
 import Input from '@/components/ui/Input.vue'
+import AuthFooter from '@/components/AuthFooter.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -80,6 +81,7 @@ async function handleSubmit() {
             Войти
           </Button>
         </form>
+        
 
         <!-- Забыли пароль -->
         <p class="mt-4 text-center text-sm opacity-70">
@@ -102,14 +104,14 @@ async function handleSubmit() {
           </RouterLink>
         </p>
       </div>
-
+      <AuthFooter />
       <!-- Подсказка для разработки -->
-      <p class="mt-6 text-center text-xs opacity-50">
+      <!-- <p class="mt-6 text-center text-xs opacity-50">
         Для теста:
         <code class="bg-slate-200 dark:bg-slate-700 px-1.5 py-0.5">admin@vpn.local</code>
         /
         <code class="bg-slate-200 dark:bg-slate-700 px-1.5 py-0.5">password</code>
-      </p>
+      </p> -->
     </div>
   </div>
 </template>

@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import Button from '@/components/ui/Button.vue'
 import Input from '@/components/ui/Input.vue'
+import AuthFooter from '@/components/AuthFooter.vue'
 
 const router = useRouter()
 const auth = useAuthStore()
@@ -126,6 +127,7 @@ async function handleSubmit() {
           </RouterLink>
         </p>
       </div>
+      <AuthFooter />
 
       <!-- Подсказка про модерацию -->
       <p class="mt-6 text-xs text-center opacity-50">
