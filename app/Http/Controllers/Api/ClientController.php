@@ -5,8 +5,12 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\VpnClient;
 use App\Models\XrayServer;
+use App\Services\XrayService;
+
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+
 
 class ClientController extends Controller
 {
@@ -81,6 +85,21 @@ class ClientController extends Controller
             'xrayServer',  // ← добавлено
         ]);
 
+        if ($client->xrayServer) {
+            try {
+                app(XrayService::class)->addUser(
+                    $client->xrayServer->inbound_tag,
+                    $client->uuid,
+                    $client->email
+                );
+            } catch (\Exception $e) {
+                Log::error('Не удалось добавить клиента в Xray', [
+                    'client_id' => $client->id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
         return response()->json($client, 201);
     }
 
@@ -112,7 +131,18 @@ class ClientController extends Controller
             'expires_at' => ['sometimes', 'nullable', 'date'],
         ]);
 
+        $wasActive = $client->is_active;
         $client->update($validated);
+
+        if (isset($validated['is_active']) && $validated['is_active'] !== $wasActive) {
+            $xray = app(XrayService::class);
+            $tag = $client->xrayServer?->inbound_tag;
+            if ($tag) {
+                $validated['is_active']
+                    ? $xray->addUser($tag, $client->uuid, $client->email)
+                    : $xray->removeUser($tag, $client->email);
+            }
+        }
 
         return response()->json($client);
     }
@@ -123,6 +153,20 @@ class ClientController extends Controller
     public function destroy(Request $request, VpnClient $client): JsonResponse
     {
         $this->authorizeAccess($request, $client);
+
+        if ($client->xrayServer) {
+            try {
+                app(XrayService::class)->removeUser(
+                    $client->xrayServer->inbound_tag,
+                    $client->email
+                );
+            } catch (\Exception $e) {
+                Log::warning('Не удалось удалить клиента из Xray', [
+                    'client_id' => $client->id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
 
         $client->delete();
 
