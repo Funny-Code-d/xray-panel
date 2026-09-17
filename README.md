@@ -1,75 +1,273 @@
-# VPN Panel
+# Xray Panel
 
-Веб-панель для управления VPN-сервером на базе Xray (VMess + WebSocket). Единый личный кабинет для клиентов и админ-панель для владельца сервиса.
+Открытая веб-панель для управления Xray-сервером и клиентами. Построена на Laravel + Vue 3, работает с Xray-core через VLESS + Reality.
 
 ## О проекте
 
-Вместо ручного редактирования конфигов Xray и общения в Telegram — централизованное управление через веб-интерфейс:
+**Xray Panel** — это self-hosted панель для централизованного управления VPN-инфраструктурой на базе [Xray-core](https://github.com/XTLS/Xray-core). Вместо ручного редактирования `config.json`, запуска команд через SSH и общения с пользователями в мессенджерах — единый веб-интерфейс с личным кабинетом и админ-панелью.
 
-- **Личный кабинет** — создание VPN-ключей, QR-код для подключения, статистика трафика
-- **Админ-панель** — модерация заявок, управление пользователями, роли, блокировки, лимиты
-- **Лента новостей** — публикации для пользователей с подписками на email/Telegram *(в разработке)*
-- **Уведомления** — email и Telegram *(в разработке)*
+**Что делает панель:**
+
+- **Управляет Xray-серверами** — генерирует `config.json` из БД, отдаёт его серверу через API, синхронизирует клиентов
+- **Выдаёт ключи доступа** — генерирует `vless://` ссылки (VLESS + Reality) и QR-коды для подключения
+- **Собирает статистику** — читает трафик из Xray Stats API по email клиента, хранит по дням
+- **Управляет пользователями** — регистрация с модерацией, роли, блокировки, лимиты трафика
+- **Поддерживает мульти-сервер** — один экземпляр панели управляет несколькими Xray-узлами
+
+**Технически:**
+
+- Laravel 12 (API-бэкенд) + Vue 3 (SPA-фронтенд) + Sanctum (аутентификация)
+- Xray-core с VLESS + Reality (современный протокол, устойчивый к DPI)
+- Xray API через CLI (`xray api statsquery`) для статистики
+- Генерация конфига и передача через HTTP с Bearer-токеном
+
+## Статус проекта
+
+### ✅ Реализовано
+
+**Аутентификация и пользователи:**
+- Регистрация с модерацией заявок (pending / approved / rejected)
+- Логин / логаут через Laravel Sanctum
+- Смена пароля + восстановление через email
+- Блокировка / разблокировка пользователей (с деактивацией всех ключей)
+- Роли (admin / user) через отдельную таблицу `roles` + `role_user`
+
+**VPN-ключи:**
+- CRUD ключей доступа (создание, просмотр, обновление, удаление)
+- Автогенерация UUID и email для каждого ключа
+- Привязка ключа к конкретному Xray-серверу
+- Генерация `vless://` ссылок (VLESS + Reality)
+- Генерация `vmess://` ссылок (legacy, для совместимости)
+- QR-код для быстрого подключения
+- Копирование ссылки в буфер обмена
+
+**Xray-интеграция:**
+- Мульти-серверная модель (`xray_servers`)
+- Генерация полного конфига Xray из БД (`XrayConfigBuilder`)
+- Endpoint `GET /api/xray/config` с Bearer-токеном для серверов
+- Скрипт `xray-reload.sh` — забирает конфиг и перезапускает Xray
+- Чтение статистики через `xray api statsquery`
+- Синхронизация трафика по email (`xray:sync-traffic`)
+- Таблица `traffic_stats` — дневная разбивка трафика
+
+**Админ-панель:**
+- Дашборд с метриками системы
+- Список заявок на одобрение
+- Список всех пользователей с фильтрами и поиском
+- Карточка пользователя со всей информацией
+- Смена ролей и лимита трафика
+- Одобрение / отклонение заявок
+- Блокировка / разблокировка
+
+**Дизайн:**
+- Neo-brutalism — острые углы, жирные контуры, жёсткие тени
+- Светлая и тёмная темы с переключением
+- Плавные анимации переходов и появления элементов
+- Адаптив под мобильные (карточки вместо таблиц)
+
+**Инфраструктура:**
+- Деплой на VPS (Nginx + PHP-FPM + MariaDB)
+- HTTPS через Let's Encrypt
+- Cron для синхронизации трафика и reload Xray
+- Страница «О проекте» с поддержкой проекта
+
+### 🚧 В планах
+
+**Xray-интеграция:**
+- gRPC-дельты (`AddUser` / `RemoveUser`) без перезапуска Xray — сейчас используется перезапуск через скрипт
+- Автодеактивация ключей при превышении лимита трафика
+- Сброс лимита трафика по расписанию (месячный цикл)
+- Учёт онлайн-сессий и аптайма (`GetStatsOnline`)
+
+**Коммуникация:**
+- Лента новостей с постами для пользователей
+- Подписки на уведомления (email + Telegram)
+- Уведомления о событиях (заявка одобрена, аккаунт заблокирован, трафик на исходе)
+- Telegram-бот для управления аккаунтом
+
+**Инфраструктура:**
+- Балансировщик нагрузки — единая точка входа для клиентов, редирект трафика по email на нужный узел
+- Node Agent — heartbeat и метрики с каждого узла
+- Миграция клиентов между узлами
+
+**Безопасность:**
+- Двухфакторная аутентификация (2FA)
+- Логи действий администраторов
+- Rate limiting на чувствительные endpoint'ы
+
+**UI/UX:**
+- Графики трафика (по дням, неделям, месяцам)
+- Экспорт данных (CSV, JSON)
+- Тёмная/светлая тема по системным настройкам
 
 ## Стек
 
 ### Backend
 - **PHP 8.2+**
 - **Laravel 12**
-- **MySQL / MariaDB** — база данных
-- **Laravel Sanctum** — API-аутентификация через токены
-- **Xray-core** — VPN-сервер (VMess + WebSocket)
+- **MySQL / MariaDB**
+- **Laravel Sanctum** — API-аутентификация
+- **Xray-core** — VLESS + Reality
 
 ### Frontend
-- **Vue 3** (Composition API, `<script setup>`)
-- **Vite** — сборщик
-- **Vue Router** — роутинг
-- **Pinia** — стейт-менеджмент
-- **Axios** — HTTP-клиент
-- **Tailwind CSS v4** — стилизация
-- **qrcode** — генерация QR-кодов
+- **Vue 3** (Composition API)
+- **Vite**
+- **Vue Router**
+- **Pinia**
+- **Axios**
+- **Tailwind CSS v4**
+- **qrcode**
 
-### Дизайн
-- **Neo-brutalism** — острые углы, жирные контуры, жёсткие тени
-- **Светлая и тёмная темы** — переключение через класс `dark` на `<html>`
-- **Акценты** — синий (светлая тема), оранжевый (тёмная)
+### Инфраструктура
+- **Nginx** — reverse proxy + статика
+- **PHP-FPM**
+- **MariaDB**
+- **Let's Encrypt** — SSL
+- **Cron** — синхронизация
 
-## Требования
+## Архитектура
+
+```
+┌─────────────────────────────────────────┐
+│             Laravel Panel               │
+│  ┌───────────────────────────────────┐  │
+│  │  XrayConfigBuilder                │  │
+│  │  → генерирует config.json         │  │
+│  └───────────────────────────────────┘  │
+│  ┌───────────────────────────────────┐  │
+│  │  XrayService                      │  │
+│  │  → читает статистику по email     │  │
+│  └───────────────────────────────────┘  │
+│  ┌───────────────────────────────────┐  │
+│  │  GET /api/xray/config             │  │
+│  │  → отдаёт конфиг серверу          │  │
+│  └───────────────────────────────────┘  │
+└─────────────────────────────────────────┘
+                    ↑
+        HTTP (Bearer token)
+                    │
+┌─────────────────────────────────────────┐
+│              Xray Node                  │
+│  ┌───────────────────────────────────┐  │
+│  │  xray-reload.sh (cron)            │  │
+│  │  → забирает конфиг, рестартит     │  │
+│  └───────────────────────────────────┘  │
+│  ┌───────────────────────────────────┐  │
+│  │  Xray (VLESS + Reality)           │  │
+│  │  → API 127.0.0.1:10085            │  │
+│  └───────────────────────────────────┘  │
+└─────────────────────────────────────────┘
+```
+
+## Роли и статусы
+
+### Роли (`role_user`)
+- **`admin`** — полный доступ к админ-панели
+- **`user`** — обычный пользователь
+
+### Статусы одобрения (`users.approval_status`)
+- **`pending`** — заявка на рассмотрении, доступ только к `/pending`
+- **`approved`** — полный доступ
+- **`rejected`** — заявка отклонена
+
+### Блокировка (`users.is_blocked`)
+Независимо от статуса одобрения. При блокировке:
+- Все ключи деактивируются
+- Все Sanctum-токены отзываются
+- Пользователь видит только `/blocked`
+
+## API
+
+### Публичные
+
+| Метод | Роут | Описание |
+| :--- | :--- | :--- |
+| POST | `/api/login` | Логин |
+| POST | `/api/register` | Регистрация |
+| POST | `/api/forgot-password` | Запрос сброса пароля |
+| POST | `/api/reset-password` | Сброс пароля |
+| GET | `/api/xray/config` | Конфиг Xray для сервера (Bearer) |
+
+### Аутентифицированные
+
+| Метод | Роут | Описание |
+| :--- | :--- | :--- |
+| POST | `/api/logout` | Выход |
+| GET | `/api/me` | Текущий пользователь |
+| POST | `/api/change-password` | Смена пароля |
+
+### Только для одобренных
+
+| Метод | Роут | Описание |
+| :--- | :--- | :--- |
+| GET | `/api/clients` | Список ключей |
+| POST | `/api/clients` | Создать ключ |
+| GET | `/api/clients/{id}` | Конкретный ключ |
+| PATCH | `/api/clients/{id}` | Обновить |
+| DELETE | `/api/clients/{id}` | Удалить |
+| GET | `/api/clients/{id}/config` | Конфиг + ссылка |
+
+### Только для админов
+
+| Метод | Роут | Описание |
+| :--- | :--- | :--- |
+| GET | `/api/admin/dashboard` | Метрики |
+| GET | `/api/admin/users` | Список пользователей |
+| GET | `/api/admin/users/{id}` | Карточка |
+| PATCH | `/api/admin/users/{id}` | Обновить (роли, лимит) |
+| POST | `/api/admin/users/{id}/approve` | Одобрить |
+| POST | `/api/admin/users/{id}/reject` | Отклонить |
+| POST | `/api/admin/users/{id}/block` | Заблокировать |
+| POST | `/api/admin/users/{id}/unblock` | Разблокировать |
+
+## Генерация ссылок
+
+### VLESS + Reality
+
+```
+vless://<UUID>@<HOST>:<PORT>?type=tcp&security=reality&flow=xtls-rprx-vision&sni=dl.google.com&fp=chrome&pbk=<PUBLIC_KEY>&sid=<SHORT_ID>&spx=%2F#Name
+```
+
+Совместим с **OneXray**, **v2rayTun**, **v2rayNG**, **WINGS**.
+
+### VMess (legacy)
+
+```
+vmess://base64(json)
+```
+
+## Настройка
+
+### Требования
 
 - PHP 8.2+
 - Composer
 - Node.js 20.19+ или 22.12+
 - MySQL 8.0+ / MariaDB 10.6+
-- Xray-core (для продакшена)
+- Xray-core с API (HandlerService + StatsService)
+- Nginx (для прода)
 
-## Установка
+### Локальная разработка
 
-### 1. Клонирование
+**1. Клонирование:**
 
 ```bash
 git clone <url-репозитория> vpn-panel
 cd vpn-panel
 ```
 
-### 2. Backend
+**2. Backend:**
 
 ```bash
 composer install
-
-# Копируем .env
 cp .env.example .env
-
-# Генерируем APP_KEY
 php artisan key:generate
 ```
 
-### 3. Настройка `.env`
-
-Открой `.env` и настрой подключение к БД, почту и Xray:
+**3. Настройка `.env`:**
 
 ```env
-APP_NAME="VPN Panel"
-APP_URL=http://127.0.0.1:8000
+APP_URL=http://localhost:8000
 FRONTEND_URL=http://localhost:5173
 
 DB_CONNECTION=mysql
@@ -89,48 +287,46 @@ MAIL_ENCRYPTION=tls
 MAIL_FROM_ADDRESS="your@gmail.com"
 MAIL_FROM_NAME="${APP_NAME}"
 
-# Xray
-XRAY_SERVER_HOST=your.vpn.server
-XRAY_SERVER_PORT=80
-XRAY_SERVER_NETWORK=ws
-XRAY_SERVER_PATH=/api/v2/download
-XRAY_SERVER_TLS=
-XRAY_SERVER_SNI=
-XRAY_SERVER_ALTER_ID=0
+# Xray API
+XRAY_API_SERVER=127.0.0.1:10085
+XRAY_BINARY=xray
+
+# Xray сервер (VLESS + Reality)
+XRAY_VLESS_HOST=your.server.ip
+XRAY_VLESS_PORT=443
+XRAY_VLESS_API_PORT=10085
+XRAY_VLESS_INBOUND_TAG=vless-inbound
+XRAY_VLESS_FLOW=xtls-rprx-vision
+
+XRAY_VLESS_REALITY_DEST=dl.google.com:443
+XRAY_VLESS_REALITY_SNI=dl.google.com
+XRAY_VLESS_REALITY_PRIVATE_KEY=your_private_key
+XRAY_VLESS_REALITY_PUBLIC_KEY=your_public_key
+XRAY_VLESS_REALITY_SHORT_ID=0123456789abcdef
+XRAY_VLESS_FINGERPRINT=chrome
 ```
 
 **Важно:**
-- `MAIL_PASSWORD` — это **пароль приложения Google**, не обычный пароль. Создаётся на `myaccount.google.com/apppasswords` при включённой двухэтапной аутентификации.
-- `XRAY_SERVER_HOST` — IP или домен твоего VPN-сервера. Именно это значение попадёт в `vmess://` ссылки.
 
-### 4. Миграции и сидеры
+- `MAIL_PASSWORD` — пароль приложения Google (не обычный пароль).
+- `XRAY_VLESS_HOST` — IP или домен VPN-сервера.
+- `XRAY_VLESS_REALITY_PUBLIC_KEY` — сгенерировать: `xray x25519 --input <privateKey>`
+
+**4. Миграции и сидеры:**
 
 ```bash
-# Создай базу данных в MySQL
 mysql -u root -p -e "CREATE DATABASE vpn_panel CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
-
-# Применяем миграции + создаём роли и админа + демо-данные
-php artisan migrate:fresh --seed
+php artisan migrate --seed
 ```
 
-После этого в БД будет:
-- **Роли:** `admin`, `user`
-- **Админ:** `admin@vpn.local` / `password`
-- **10 демо-пользователей** с ключами (только в `local` окружении)
+После этого в БД:
+- Роли `admin`, `user`
+- Админ `admin@vpn.local` / `password`
+- Xray-сервер с API-токеном (выведется в консоль — сохрани)
 
-⚠️ **Смени пароль администратора после первого входа.** Дефолтный `password` — только для локальной разработки.
+⚠️ **Смени пароль администратора после первого входа.**
 
-### 5. Запуск backend
-
-```bash
-php artisan serve --host=0.0.0.0 --port=8000
-```
-
-Laravel доступен на `http://127.0.0.1:8000`, API — на `http://127.0.0.1:8000/api`.
-
-### 6. Frontend
-
-В новом терминале:
+**5. Frontend:**
 
 ```bash
 cd frontend
@@ -138,260 +334,176 @@ npm install
 npm run dev
 ```
 
-Vite запустится на `http://localhost:5173`. Открой в браузере.
+### Развёртывание на VPS
 
-## Структура проекта
+**1. Подготовка сервера:**
 
-```
-vpn-panel/
-├── app/
-│   ├── Http/
-│   │   ├── Controllers/Api/
-│   │   │   ├── AuthController.php
-│   │   │   ├── ClientController.php
-│   │   │   └── Admin/
-│   │   │       ├── UserController.php
-│   │   │       ├── PostController.php
-│   │   │       └── DashboardController.php
-│   │   ├── Middleware/
-│   │   │   ├── EnsureUserIsAdmin.php
-│   │   │   ├── EnsureUserIsApproved.php
-│   │   │   ├── EnsureUserIsNotBlocked.php
-│   │   │   └── ForceJsonResponse.php
-│   │   └── Requests/
-│   │       └── LoginRequest.php
-│   ├── Mail/
-│   │   └── PasswordChangedMail.php
-│   ├── Models/
-│   │   ├── User.php
-│   │   ├── Role.php
-│   │   ├── VpnClient.php
-│   │   └── Post.php
-│   └── Notifications/
-│       └── ResetPasswordNotification.php
-├── database/
-│   ├── factories/
-│   ├── migrations/
-│   └── seeders/
-├── frontend/
-│   ├── src/
-│   │   ├── api/axios.js
-│   │   ├── components/
-│   │   │   ├── ui/           — Button, Input, Modal, IconButton, ConfirmModal
-│   │   │   ├── admin/        — AdminLayout, RejectModal, BlockModal, EditUserModal
-│   │   │   ├── dashboard/    — UserDashboard, AdminDashboard
-│   │   │   ├── AppLayout.vue
-│   │   │   ├── ClientStatus.vue
-│   │   │   ├── CreateClientModal.vue
-│   │   │   └── QrCodeModal.vue
-│   │   ├── pages/
-│   │   │   ├── LoginPage.vue
-│   │   │   ├── RegisterPage.vue
-│   │   │   ├── ForgotPasswordPage.vue
-│   │   │   ├── ResetPasswordPage.vue
-│   │   │   ├── PendingPage.vue
-│   │   │   ├── BlockedPage.vue
-│   │   │   ├── DashboardPage.vue
-│   │   │   ├── ClientsPage.vue
-│   │   │   ├── AdminUserPage.vue
-│   │   │   └── admin/
-│   │   │       ├── ApplicationsPage.vue
-│   │   │       └── UsersPage.vue
-│   │   ├── router/index.js
-│   │   ├── stores/
-│   │   │   ├── auth.js
-│   │   │   └── theme.js
-│   │   ├── utils/format.js
-│   │   ├── App.vue
-│   │   ├── main.js
-│   │   └── style.css
-│   └── package.json
-├── routes/
-│   ├── api.php
-│   ├── console.php
-│   └── web.php
-└── .env
+```bash
+sudo apt update && sudo apt upgrade -y
+sudo apt install -y nginx mariadb-server \
+    php8.3 php8.3-fpm php8.3-mysql php8.3-curl php8.3-json \
+    php8.3-xml php8.3-mbstring php8.3-zip php8.3-gd php8.3-bcmath \
+    php8.3-cli unzip git curl
+
+curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
+sudo apt install -y nodejs
+
+curl -sS https://getcomposer.org/installer | php
+sudo mv composer.phar /usr/local/bin/composer
 ```
 
-## Роли и статусы
+**2. Клонирование и установка:**
 
-### Роли (`role_user`)
-- **`admin`** — полный доступ к админ-панели
-- **`user`** — обычный пользователь
+```bash
+cd /var/www
+sudo git clone <url-репозитория> vpn-panel
+sudo chown -R $USER:$USER /var/www/vpn-panel
+cd /var/www/vpn-panel
+composer install --no-dev --optimize-autoloader
+```
 
-### Статусы одобрения (`users.approval_status`)
-- **`pending`** — заявка на рассмотрении, доступ только к `/pending`
-- **`approved`** — полный доступ
-- **`rejected`** — заявка отклонена, доступ только к `/pending`
+**3. База данных:**
 
-### Блокировка (`users.is_blocked`)
-Независимо от статуса одобрения. При блокировке:
-- Все VPN-ключи деактивируются
-- Все активные сессии (Sanctum-токены) отзываются
-- Пользователь видит только `/blocked`
+```bash
+sudo mysql
+```
 
-## API
+```sql
+CREATE DATABASE vpn_panel CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER 'vpn_user'@'localhost' IDENTIFIED BY 'strong_password';
+GRANT ALL PRIVILEGES ON vpn_panel.* TO 'vpn_user'@'localhost';
+FLUSH PRIVILEGES;
+EXIT;
+```
 
-Полный список роутов: `php artisan route:list --path=api`
+**4. Production `.env`:**
 
-### Публичные
+```env
+APP_ENV=production
+APP_DEBUG=false
+APP_URL=https://your-domain.com
+FRONTEND_URL=https://your-domain.com
+```
 
-| Метод | Роут | Описание |
-| :--- | :--- | :--- |
-| POST | `/api/login` | Логин |
-| POST | `/api/register` | Регистрация |
-| POST | `/api/forgot-password` | Запрос ссылки сброса пароля |
-| POST | `/api/reset-password` | Сброс пароля по токену |
+```bash
+php artisan key:generate
+php artisan migrate --seed
+sudo chown -R www-data:www-data /var/www/vpn-panel
+sudo chmod -R 775 /var/www/vpn-panel/storage
+sudo chmod -R 775 /var/www/vpn-panel/bootstrap/cache
+```
 
-### Аутентифицированные
+**5. Сборка фронта:**
 
-| Метод | Роут | Описание |
-| :--- | :--- | :--- |
-| POST | `/api/logout` | Выход |
-| GET | `/api/me` | Текущий пользователь |
-| POST | `/api/change-password` | Смена пароля |
+```bash
+cd frontend
+npm install
+npm run build
+```
 
-### Только для одобренных
+**6. Nginx:**
 
-| Метод | Роут | Описание |
-| :--- | :--- | :--- |
-| GET | `/api/clients` | Список ключей |
-| POST | `/api/clients` | Создать ключ |
-| GET | `/api/clients/{id}` | Конкретный ключ |
-| PATCH | `/api/clients/{id}` | Обновить ключ |
-| DELETE | `/api/clients/{id}` | Удалить ключ |
-| GET | `/api/clients/{id}/config` | Конфиг + `vmess://` ссылка |
+`/etc/nginx/sites-available/vpn-panel`:
 
-### Только для админов
+```nginx
+server {
+    listen 80;
+    server_name your-domain.com;
 
-| Метод | Роут | Описание |
-| :--- | :--- | :--- |
-| GET | `/api/admin/dashboard` | Метрики системы |
-| GET | `/api/admin/users` | Список пользователей |
-| GET | `/api/admin/users/{id}` | Карточка пользователя |
-| PATCH | `/api/admin/users/{id}` | Обновить (роли, лимит) |
-| POST | `/api/admin/users/{id}/approve` | Одобрить заявку |
-| POST | `/api/admin/users/{id}/reject` | Отклонить заявку |
-| POST | `/api/admin/users/{id}/block` | Заблокировать |
-| POST | `/api/admin/users/{id}/unblock` | Разблокировать |
+    root /var/www/vpn-panel/frontend/dist;
+    index index.html;
 
-## Генерация `vmess://` ссылки
+    location /api/ {
+        root /var/www/vpn-panel/public;
+        try_files $uri $uri/ /index.php?$query_string;
+    }
 
-Формат ссылки — `vmess://` + base64 от JSON. Совместим с **v2rayTun**, **OneXray**, **v2rayNG**, **WINGS**.
+    location ~ \.php$ {
+        root /var/www/vpn-panel/public;
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/var/run/php/php8.3-fpm.sock;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        include fastcgi_params;
+    }
 
-**Особенности формата** (важно для совместимости с iOS-клиентами):
-- `port` и `aid` — **числа**, не строки
-- `host` — **пустая строка** для не-TLS конфигураций
-- `tls` — **явно `"none"`**, если TLS нет
-- `JSON_PRETTY_PRINT` — с отступами, как в эталонных ссылках
-
-Пример декодированного JSON:
-
-```json
-{
-  "v": "2",
-  "ps": "Мой iPhone",
-  "add": "your.vpn.server",
-  "port": 80,
-  "id": "00000000-0000-0000-0000-000000000000",
-  "aid": 0,
-  "net": "ws",
-  "type": "none",
-  "host": "",
-  "path": "/api/v2/download",
-  "tls": "none"
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
 }
+```
+
+```bash
+sudo ln -s /etc/nginx/sites-available/vpn-panel /etc/nginx/sites-enabled/
+sudo rm /etc/nginx/sites-enabled/default
+sudo nginx -t
+sudo systemctl reload nginx
+```
+
+**7. SSL:**
+
+```bash
+sudo apt install -y certbot python3-certbot-nginx
+sudo certbot --nginx -d your-domain.com
+```
+
+**8. Cron:**
+
+```bash
+sudo crontab -e -u www-data
+```
+
+```
+* * * * * cd /var/www/vpn-panel && php artisan schedule:run >> /dev/null 2>&1
+```
+
+**Reload Xray** — `/usr/local/bin/xray-reload.sh`:
+
+```bash
+#!/bin/bash
+set -euo pipefail
+
+PANEL_URL="http://127.0.0.1"
+API_TOKEN="<токен-из-БД>"
+CONFIG_PATH="/usr/local/etc/xray/config.json"
+TEMP_PATH="/tmp/xray-config.json"
+
+curl -sf "$PANEL_URL/api/xray/config" \
+    -H "Authorization: Bearer $API_TOKEN" \
+    -o "$TEMP_PATH"
+
+if xray run -test -config "$TEMP_PATH" > /dev/null 2>&1; then
+    cp "$CONFIG_PATH" "$CONFIG_PATH.bak" 2>/dev/null || true
+    cp "$TEMP_PATH" "$CONFIG_PATH"
+    systemctl restart xray
+fi
+```
+
+```bash
+sudo chmod +x /usr/local/bin/xray-reload.sh
+
+sudo crontab -e
+```
+
+```
+*/5 * * * * /usr/local/bin/xray-reload.sh >> /var/log/xray-reload.log 2>&1
 ```
 
 ## Разработка
 
-### Запуск в dev-режиме
-
-**Терминал 1 — Laravel:**
+### Полезные команды
 
 ```bash
-php artisan serve --host=0.0.0.0 --port=8000
+php artisan optimize:clear           # Очистить весь кэш
+php artisan migrate:fresh --seed     # Пересоздать БД
+php artisan route:list --path=api -v # Список роутов
+php artisan xray:sync-traffic        # Синхронизация трафика
+php artisan xray:sync-clients        # Синхронизация клиентов
+php artisan tinker                   # REPL
 ```
 
-**Терминал 2 — Vite:**
+## Поддержать проект
 
-```bash
-cd frontend
-npm run dev
-```
-
-**Терминал 3 — Mailpit (для отладки писем):**
-
-```bash
-brew install mailpit
-mailpit
-```
-
-Веб-интерфейс Mailpit: `http://localhost:8025`. Все письма, отправленные Laravel, будут перехвачены сюда.
-
-### Тестирование с телефона
-
-Чтобы зайти с телефона в локальной сети:
-
-1. Узнай IP Mac:
-   ```bash
-   ipconfig getifaddr en0
-   ```
-
-2. Laravel уже слушает `0.0.0.0` (флаг `--host`).
-
-3. Vite должен слушать `0.0.0.0` — добавь в `frontend/vite.config.js`:
-   ```js
-   server: {
-     host: '0.0.0.0',
-     port: 5173,
-     // ...
-   }
-   ```
-
-4. Открой на телефоне:
-   ```
-   http://<твой-локальный-IP>:5173
-   ```
-
-## Полезные команды
-
-```bash
-# Очистить кэш
-php artisan optimize:clear
-
-# Пересоздать БД с сидерами
-php artisan migrate:fresh --seed
-
-# Список роутов
-php artisan route:list --path=api -v
-
-# Tinker
-php artisan tinker
-
-# Сборка фронта для прода
-cd frontend && npm run build
-```
-
-## Что дальше (Roadmap)
-
-- [x] Аутентификация (Sanctum)
-- [x] Модерация регистраций (pending/approved/rejected)
-- [x] Блокировка пользователей
-- [x] CRUD VPN-ключей
-- [x] Генерация `vmess://` ссылки
-- [x] QR-код для подключения
-- [x] Админ-панель с метриками
-- [x] Смена и восстановление пароля
-- [x] Дизайн-система (brutalism, светлая/тёмная тема)
-- [x] Анимации переходов
-- [ ] Xray-интеграция (синхронизация UUID через API)
-- [ ] Сбор статистики трафика
-- [ ] Лента новостей
-- [ ] Подписки (email + Telegram)
-- [ ] Уведомления о событиях
-- [ ] Двухфакторная аутентификация
-- [ ] Экспорт данных
+Проект полностью открытый и развивается в свободное время. Если хотите поддержать — можно сделать добровольное пожертвование через [ЮMoney](https://yoomoney.ru/quickpay/fundraise/button?billNumber=1KBU1HKLTL1.260917&). Средства идут на серверы и развитие.
 
 ## Лицензия
 
