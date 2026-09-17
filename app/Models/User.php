@@ -26,6 +26,7 @@ class User extends Authenticatable
         'registration_date',
         'last_auth_date',
         'traffic_limit',
+        'traffic_used',
         'approval_status',
         'approved_at',
         'approved_by',
@@ -50,6 +51,7 @@ class User extends Authenticatable
         'approved_at' => 'datetime',
         'is_blocked' => 'boolean',
         'blocked_at' => 'datetime',
+        'traffic_used' => 'integer',
     ];
 
     /**
@@ -184,5 +186,10 @@ class User extends Authenticatable
     public function sendPasswordResetNotification($token): void
     {
         $this->notify(new \App\Notifications\ResetPasswordNotification($token));
+    }
+
+    public function trafficStats(): HasMany
+    {
+        return $this->hasMany(TrafficStat::class);
     }
 }

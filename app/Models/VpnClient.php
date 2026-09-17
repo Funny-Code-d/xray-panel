@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Str;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class VpnClient extends Model
 {
@@ -20,6 +21,9 @@ class VpnClient extends Model
         'traffic_used',
         'expires_at',
         'last_connected_at',
+        'xray_last_upload',
+        'xray_last_downlink',
+        'last_synced_at',
     ];
 
     protected $casts = [
@@ -27,6 +31,9 @@ class VpnClient extends Model
         'traffic_used' => 'integer',
         'expires_at' => 'datetime',
         'last_connected_at' => 'datetime',
+        'xray_last_upload' => 'integer',
+        'xray_last_downlink' => 'integer',
+        'last_synced_at' => 'datetime',
     ];
 
     // Автогенерация UUID при создании
@@ -113,5 +120,10 @@ class VpnClient extends Model
         );
 
         return 'vmess://' . base64_encode($json);
+    }
+
+    public function trafficStats(): HasMany
+    {
+        return $this->hasMany(TrafficStat::class);
     }
 }

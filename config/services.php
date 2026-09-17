@@ -14,7 +14,12 @@ return [
     |
     */
     'xray' => [
-        'host' => env('XRAY_SERVER_HOST', 'vpn.example.com'),
+        // API для статистики и управления
+        'api_server' => env('XRAY_API_SERVER', '127.0.0.1:10085'),
+        'binary' => env('XRAY_BINARY', 'xray'),
+
+        // Настройки сервера для vmess:// ссылок
+        'host' => env('XRAY_SERVER_HOST', 'your.vpn.server'),
         'port' => (int) env('XRAY_SERVER_PORT', 80),
         'network' => env('XRAY_SERVER_NETWORK', 'ws'),
         'path' => env('XRAY_SERVER_PATH', '/api/v2/download'),
