@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import Button from '@/components/ui/Button.vue'
 import Input from '@/components/ui/Input.vue'
 import api from '@/api/axios'
+import AuthFooter from '@/components/AuthFooter.vue'
 
 const router = useRouter()
 
@@ -89,5 +90,6 @@ async function handleSubmit() {
         </form>
       </div>
     </div>
+    <AuthFooter />
   </div>
 </template>

@@ -68,6 +68,11 @@ const routes = [
     component: () => import('@/pages/BlockedPage.vue'),
     meta: { requiresAuth: true },
   },
+  {
+    path: '/about',
+    name: 'about',
+    component: () => import('@/pages/AboutPage.vue'),
+  },
 ]
 
 const router = createRouter({

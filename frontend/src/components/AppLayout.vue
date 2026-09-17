@@ -45,6 +45,13 @@ async function handleLogout() {
                 >
                 Админка
               </RouterLink>
+              <RouterLink
+                :to="{ name: 'about' }"
+                class="text-sm font-bold uppercase tracking-wide hover:text-blue-600 dark:hover:text-orange-500 transition"
+                active-class="text-blue-600 dark:text-orange-500"
+              >
+                О проекте
+              </RouterLink>
             </div>
           </div>
 
