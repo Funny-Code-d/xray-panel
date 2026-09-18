@@ -20,6 +20,7 @@ class XrayServer extends Model
         'ws_path',
         'api_token', 'is_active', 'last_seen_at', 'status',
         'alter_id',
+        'agent_port',
     ];
 
     protected $casts = [
@@ -29,7 +30,8 @@ class XrayServer extends Model
         'api_port' => 'integer',
         'reality_server_names' => 'array',
         'reality_short_ids' => 'array',
-        'alter_id',
+        'alter_id' => "integer",
+        'agent_port' => 'integer',
     ];
 
     protected $hidden = [

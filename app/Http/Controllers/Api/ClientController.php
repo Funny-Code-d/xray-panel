@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\VpnClient;
 use App\Models\XrayServer;
 use App\Services\XrayService;
+use App\Services\XrayAgentService;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -85,20 +86,7 @@ class ClientController extends Controller
             'xrayServer',  // ← добавлено
         ]);
 
-        if ($client->xrayServer) {
-            try {
-                app(XrayService::class)->addUser(
-                    $client->xrayServer->inbound_tag,
-                    $client->uuid,
-                    $client->email
-                );
-            } catch (\Exception $e) {
-                Log::error('Не удалось добавить клиента в Xray', [
-                    'client_id' => $client->id,
-                    'error' => $e->getMessage(),
-                ]);
-            }
-        }
+        app(XrayAgentService::class)->restartXray($client->xrayServer);
 
         return response()->json($client, 201);
     }
@@ -135,12 +123,9 @@ class ClientController extends Controller
         $client->update($validated);
 
         if (isset($validated['is_active']) && $validated['is_active'] !== $wasActive) {
-            $xray = app(XrayService::class);
-            $tag = $client->xrayServer?->inbound_tag;
-            if ($tag) {
-                $validated['is_active']
-                    ? $xray->addUser($tag, $client->uuid, $client->email)
-                    : $xray->removeUser($tag, $client->email);
+            $client->load('xrayServer');
+            if ($client->xrayServer) {
+                app(XrayAgentService::class)->restartXray($client->xrayServer);
             }
         }
 
@@ -166,6 +151,12 @@ class ClientController extends Controller
                     'error' => $e->getMessage(),
                 ]);
             }
+        }
+
+        $client->load('xrayServer');
+
+        if ($client->xrayServer) {
+            app(XrayAgentService::class)->restartXray($client->xrayServer);
         }
 
         $client->delete();

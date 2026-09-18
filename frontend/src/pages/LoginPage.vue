@@ -43,7 +43,7 @@ async function handleSubmit() {
     <div class="w-full max-w-md">
       <!-- Логотип / заголовок -->
       <div class="text-center mb-8">
-        <h1 class="text-4xl font-black uppercase tracking-wider">VPN Panel</h1>
+        <h1 class="text-4xl font-black uppercase tracking-wider">AEGIS</h1>
         <p class="mt-2 text-sm opacity-70">Войдите в свой аккаунт</p>
       </div>
 
