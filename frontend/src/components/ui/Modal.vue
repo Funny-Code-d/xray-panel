@@ -35,9 +35,9 @@ function onKey(e) {
         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 animate-overlay"
         @click.self="close"
       >
-        <div class="w-full max-w-md bg-white dark:bg-[#2a1548] border-2 border-black dark:border-white shadow-brutal-lg animate-modal">
-          <!-- Заголовок -->
-          <div class="flex justify-between items-center px-6 py-4 border-b-2 border-black dark:border-white">
+        <div class="w-full max-w-md bg-white dark:bg-[#2a1548] border-2 border-black dark:border-white shadow-brutal-lg animate-modal flex flex-col max-h-[90vh]">
+          <!-- Заголовок (не скроллится) -->
+          <div class="flex justify-between items-center px-6 py-4 border-b-2 border-black dark:border-white shrink-0">
             <h2 class="text-lg font-black uppercase tracking-wider">{{ title }}</h2>
             <button
               @click="close"
@@ -49,8 +49,8 @@ function onKey(e) {
             </button>
           </div>
 
-          <!-- Контент -->
-          <div class="p-6">
+          <!-- Контент (скроллится) -->
+          <div class="p-6 overflow-y-auto">
             <slot />
           </div>
         </div>

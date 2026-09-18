@@ -192,4 +192,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(TrafficStat::class);
     }
+
+    public function subscriptions(): HasMany
+    {
+        return $this->hasMany(Subscription::class);
+    }
 }

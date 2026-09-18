@@ -52,6 +52,20 @@ function closeMobileMenu() {
                 Мои ключи
               </RouterLink>
               <RouterLink
+                :to="{ name: 'news' }"
+                class="text-sm font-bold uppercase tracking-wide hover:text-blue-600 dark:hover:text-orange-500 transition"
+                active-class="text-blue-600 dark:text-orange-500"
+              >
+                Новости
+              </RouterLink>
+              <RouterLink
+                :to="{ name: 'subscriptions' }"
+                class="text-sm font-bold uppercase tracking-wide hover:text-blue-600 dark:hover:text-orange-500 transition"
+                active-class="text-blue-600 dark:text-orange-500"
+              >
+                Подписки
+              </RouterLink>
+              <RouterLink
                 v-if="auth.isAdmin"
                 :to="{ name: 'admin-applications' }"
                 class="text-sm font-bold uppercase tracking-wide hover:text-blue-600 dark:hover:text-orange-500 transition"
@@ -165,6 +179,24 @@ function closeMobileMenu() {
               @click="closeMobileMenu"
             >
               Мои ключи
+            </RouterLink>
+
+            <RouterLink
+              :to="{ name: 'news' }"
+              class="block px-3 py-2 text-sm font-bold uppercase tracking-wide border-2 border-transparent hover:border-black dark:hover:border-white transition-all"
+              active-class="border-black dark:border-white bg-blue-50 dark:bg-[#1a0b2e]"
+              @click="closeMobileMenu"
+            >
+              Новости
+            </RouterLink>
+
+            <RouterLink
+              :to="{ name: 'subscriptions' }"
+              class="block px-3 py-2 text-sm font-bold uppercase tracking-wide border-2 border-transparent hover:border-black dark:hover:border-white transition-all"
+              active-class="border-black dark:border-white bg-blue-50 dark:bg-[#1a0b2e]"
+              @click="closeMobileMenu"
+            >
+              Подписки
             </RouterLink>
 
             <RouterLink

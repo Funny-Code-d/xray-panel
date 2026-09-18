@@ -73,6 +73,39 @@ const routes = [
     name: 'about',
     component: () => import('@/pages/AboutPage.vue'),
   },
+  {
+    path: '/news',
+    name: 'news',
+    component: () => import('@/pages/NewsPage.vue'),
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/news/:slug',
+    name: 'news-post',
+    component: () => import('@/pages/NewsPostPage.vue'),
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/subscriptions',
+    name: 'subscriptions',
+    component: () => import('@/pages/SubscriptionsPage.vue'),
+    meta: { requiresAuth: true, requiresApproved: true },
+  },
+
+  // Админские
+  {
+    path: '/admin/posts',
+    name: 'admin-posts',
+    component: () => import('@/pages/admin/AdminPostsPage.vue'),
+    meta: { requiresAuth: true, requiresAdmin: true },
+  },
+
+  {
+    path: '/admin/tags',
+    name: 'admin-tags',
+    component: () => import('@/pages/admin/AdminTagsPage.vue'),
+    meta: { requiresAuth: true, requiresAdmin: true },
+  },
 ]
 
 const router = createRouter({
