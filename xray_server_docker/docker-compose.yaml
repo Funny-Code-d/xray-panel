@@ -1,0 +1,14 @@
+services:
+  xray:
+    build: .
+    container_name: xray
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      PANEL_URL: "${PANEL_URL}"
+      API_TOKEN: "${XRAY_API_TOKEN}"
+    volumes:
+      - xray-logs:/var/log/xray
+
+volumes:
+  xray-logs:
