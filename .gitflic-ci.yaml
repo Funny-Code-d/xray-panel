@@ -1,0 +1,47 @@
+stages:
+  - build
+  - migrate
+  - deploy
+
+variables:
+  APP_PATH: /var/www/vpn-panel
+
+# Сборка зависимостей и фронта
+build:
+  stage: build
+  tags:
+    - vps
+  script:
+    - cd $APP_PATH
+    - git pull origin main
+    - composer install --no-dev --optimize-autoloader
+    - cd frontend && npm install && npm run build
+  only:
+    - main
+
+# Миграции БД
+migrate:
+  stage: migrate
+  tags:
+    - vps
+  script:
+    - cd $APP_PATH
+    - php artisan migrate --force
+  only:
+    - main
+
+# Очистка и перезапуск кэша
+deploy:
+  stage: deploy
+  tags:
+    - vps
+  script:
+    - cd $APP_PATH
+    - php artisan config:cache
+    - php artisan route:cache
+    - php artisan view:cache
+    - php artisan optimize
+    - sudo systemctl restart php8.4-fpm
+    - chown -R www-data:www-data $APP_PATH/storage $APP_PATH/bootstrap/cache
+  only:
+    - main
