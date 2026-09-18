@@ -14,7 +14,8 @@ class DatabaseSeeder extends Seeder
         $this->call([
             RoleSeeder::class,
             AdminUserSeeder::class,
-            XrayServerSeeder::class,  // ← добавить
+            XrayServerSeeder::class,
+            TagSeeder::class,
         ]);
 
         // 2. Демо-данные только локально
