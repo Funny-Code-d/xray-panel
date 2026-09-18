@@ -20,7 +20,7 @@ async function handleLogout() {
         <div class="flex justify-between items-center h-16">
           <div class="flex items-center gap-8">
             <RouterLink :to="{ name: 'dashboard' }" class="text-xl font-black uppercase tracking-wider">
-              VPN Panel
+              AEGIS
             </RouterLink>
             <div class="hidden sm:flex items-center gap-6">
               <RouterLink
@@ -43,7 +43,7 @@ async function handleLogout() {
                 class="text-sm font-bold uppercase tracking-wide hover:text-blue-600 dark:hover:text-orange-500 transition"
                 active-class="text-blue-600 dark:text-orange-500"
                 >
-                Админка
+                ADMINS
               </RouterLink>
               <RouterLink
                 :to="{ name: 'about' }"

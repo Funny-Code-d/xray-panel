@@ -73,9 +73,9 @@ class XrayConfigBuilder
     }
 
     /**
-     * Настройки inbound. Для VLESS fallbacks НЕ используем —
-     * он не работает с security: reality. Вместо этого
-     * realitySettings.dest указывает на Nginx.
+     * Настройки inbound.
+     * Fallbacks не используем — Xray на отдельном порту (2053),
+     * Nginx на 443. Конфликта нет.
      */
     protected function buildInboundSettings(): array
     {
@@ -90,7 +90,6 @@ class XrayConfigBuilder
             return [
                 'clients' => $clients,
                 'decryption' => 'none',
-                // fallbacks убраны — несовместимы с reality
             ];
         }
 
@@ -117,6 +116,10 @@ class XrayConfigBuilder
         ];
     }
 
+    /**
+     * Reality маскируется под reality_dest (например, dl.google.com:443).
+     * Nginx на 443 не участвует — Xray слушает 2053.
+     */
     protected function buildStreamSettings(): array
     {
         $settings = [
@@ -124,12 +127,9 @@ class XrayConfigBuilder
             'security' => $this->server->security,
         ];
 
-        // Reality: dest указывает на Nginx (127.0.0.1:8443),
-        // чтобы незнакомые SNI (например, funny-code.space)
-        // получали сертификат от Nginx, а не от чужого сайта.
         if ($this->server->security === 'reality') {
             $settings['realitySettings'] = [
-                'dest' => '127.0.0.1:8443',
+                'dest' => $this->server->reality_dest,
                 'serverNames' => $this->server->reality_server_names,
                 'privateKey' => $this->server->reality_private_key,
                 'shortIds' => $this->server->reality_short_ids,

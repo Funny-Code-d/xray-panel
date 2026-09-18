@@ -74,6 +74,7 @@ class XrayServerSeeder extends Seeder
                 'api_token' => XrayServer::generateApiToken(),
                 'is_active' => true,
                 'status' => 'unknown',
+                'agent_port' => 8080,
             ]
         );
 
