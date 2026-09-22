@@ -62,10 +62,17 @@ function closeMobileMenu() {
 
             <RouterLink
               :to="{ name: 'dashboard' }"
-              class="text-xl font-black uppercase tracking-wider"
+              class="flex items-center gap-2 px-3 h-10 border-2 border-black dark:border-white bg-[#FFD700] hover:shadow-brutal-sm transition-all"
               @click="closeMobileMenu"
             >
-              FunnyNodes
+              <img
+                src="/logo-icon.svg"
+                alt="FunnyNodes"
+                class="w-7 h-7 shrink-0"
+              />
+              <span class="text-sm sm:text-base font-black uppercase tracking-wider text-black whitespace-nowrap">
+                FunnyNodes
+              </span>
             </RouterLink>
           </div>
 

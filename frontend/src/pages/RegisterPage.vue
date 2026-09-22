@@ -46,8 +46,16 @@ async function handleSubmit() {
     <div class="w-full max-w-md">
       <!-- Заголовок -->
       <div class="text-center mb-8">
-        <h1 class="text-4xl font-black uppercase tracking-wider">FunnyNodes</h1>
+        <div class="text-center mb-8">
+        <img
+          src="/logo-icon.svg"
+          alt="FunnyNodes"
+          class="w-20 h-20 mx-auto mb-4"
+        />
+        <h1 class="text-3xl font-black uppercase tracking-wider">FunnyNodes</h1>
         <p class="mt-2 text-sm opacity-70">Создайте аккаунт</p>
+      </div>
+        
       </div>
 
       <!-- Карточка формы -->

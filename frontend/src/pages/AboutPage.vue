@@ -41,10 +41,15 @@ function goBack() {
       </button>
 
       <!-- Заголовок -->
-      <div>
-        <h1 class="text-4xl font-black uppercase tracking-wider">FunnyNodes</h1>
-        <p class="mt-2 text-sm opacity-70">Открытая панель управления</p>
+      <div class="flex justify-center mb-8">
+      <div class="bg-[#fde801] border-[3px] border-black dark:border-white shadow-brutal-lg p-6 max-w-sm">
+        <img
+          src="/logo-full.jpg"
+          alt="FunnyNodes"
+          class="w-full"
+        />
       </div>
+    </div>
 
       <!-- Что это -->
       <div class="bg-white dark:bg-[#1A1A1A] border-[3px] border-black dark:border-white shadow-brutal p-6">
