@@ -47,4 +47,4 @@ jobs:
 
       - name: Restart PHP-FPM
         run: |
-          systemctl restart php8.3-fpm
+          systemctl restart php8.4-fpm
