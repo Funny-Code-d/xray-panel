@@ -56,7 +56,7 @@ async function handleSubmit() {
     <div class="w-full max-w-md">
       <!-- Заголовок -->
       <div class="text-center mb-8">
-        <h1 class="text-4xl font-black uppercase tracking-wider">AEGIS</h1>
+        <h1 class="text-4xl font-black uppercase tracking-wider">FunnyNodes</h1>
         <p class="mt-2 text-sm opacity-70">Новый пароль</p>
       </div>
 

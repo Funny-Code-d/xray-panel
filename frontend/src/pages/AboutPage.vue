@@ -42,7 +42,7 @@ function goBack() {
 
       <!-- Заголовок -->
       <div>
-        <h1 class="text-4xl font-black uppercase tracking-wider">Aegis</h1>
+        <h1 class="text-4xl font-black uppercase tracking-wider">FunnyNodes</h1>
         <p class="mt-2 text-sm opacity-70">Открытая панель управления</p>
       </div>
 

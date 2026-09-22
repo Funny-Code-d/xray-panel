@@ -32,7 +32,7 @@ function closeMobileMenu() {
               class="text-xl font-black uppercase tracking-wider"
               @click="closeMobileMenu"
             >
-              Aegis
+              FunnyNodes
             </RouterLink>
 
             <!-- Desktop-навигация -->
