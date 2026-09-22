@@ -159,7 +159,7 @@ async function handleDelete() {
     <!-- Empty -->
     <div
       v-else-if="!hasClients"
-      class="bg-white dark:bg-[#1A1A1A] border-[3px] border-black dark:border-white shadow-brutal p-12 text-center"
+      class="bg-white dark:bg-[#2a1548] border-2 border-black dark:border-white shadow-brutal p-12 text-center"
     >
       <p class="text-xl font-bold mb-2">У вас пока нет ключей</p>
       <p class="text-sm opacity-70 mb-6">Создайте первый ключ, чтобы начать пользоваться VPN</p>
@@ -171,7 +171,7 @@ async function handleDelete() {
     <!-- Список -->
     <div v-else class="space-y-4">
       <!-- Десктоп: таблица -->
-      <div class="hidden md:block bg-white dark:bg-[#1A1A1A] border-[3px] border-black dark:border-white shadow-brutal overflow-hidden">
+      <div class="hidden md:block bg-white dark:bg-[#2a1548] border-2 border-black dark:border-white shadow-brutal overflow-hidden">
         <table class="w-full">
           <thead class="border-b-2 border-black dark:border-white bg-slate-50 dark:bg-[#1a0b2e]">
             <tr>
@@ -238,7 +238,7 @@ async function handleDelete() {
         <div
           v-for="(client, index) in clients"
           :key="client.id"
-          class="animate-list-item bg-white dark:bg-[#1A1A1A] border-[3px] border-black dark:border-white shadow-brutal p-4"
+          class="animate-list-item bg-white dark:bg-[#2a1548] border-2 border-black dark:border-white shadow-brutal p-4"
           :style="{ animationDelay: `${Math.min(index, 10) * 30}ms` }"
         >
           <div class="flex justify-between items-start mb-3">

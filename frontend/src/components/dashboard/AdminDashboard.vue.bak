@@ -65,7 +65,7 @@ onMounted(() => {
   <div v-else-if="data" class="space-y-6">
     <!-- Верхний ряд: метрики пользователей -->
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-      <div class="bg-white dark:bg-[#1A1A1A] border-[3px] border-black dark:border-white shadow-brutal p-5">
+      <div class="bg-white dark:bg-[#2a1548] border-2 border-black dark:border-white shadow-brutal p-5">
         <p class="text-xs font-bold uppercase tracking-wider opacity-60 mb-1">Пользователей</p>
         <p class="text-3xl font-black">{{ data.users.total }}</p>
         <p class="text-xs opacity-60 mt-1">
@@ -75,7 +75,7 @@ onMounted(() => {
 
       <RouterLink
         :to="{ name: 'admin-applications' }"
-        class="bg-white dark:bg-[#1A1A1A] border-[3px] border-black dark:border-white shadow-brutal p-5 hover:shadow-brutal-hover transition-all"
+        class="bg-white dark:bg-[#2a1548] border-2 border-black dark:border-white shadow-brutal p-5 hover:shadow-brutal-hover transition-all"
       >
         <p class="text-xs font-bold uppercase tracking-wider opacity-60 mb-1">Ожидают</p>
         <p class="text-3xl font-black" :class="data.users.pending > 0 ? 'text-amber-600 dark:text-amber-400' : ''">
@@ -84,7 +84,7 @@ onMounted(() => {
         <p class="text-xs opacity-60 mt-1">заявок</p>
       </RouterLink>
 
-      <div class="bg-white dark:bg-[#1A1A1A] border-[3px] border-black dark:border-white shadow-brutal p-5">
+      <div class="bg-white dark:bg-[#2a1548] border-2 border-black dark:border-white shadow-brutal p-5">
         <p class="text-xs font-bold uppercase tracking-wider opacity-60 mb-1">Заблокировано</p>
         <p class="text-3xl font-black" :class="data.users.blocked > 0 ? 'text-red-600 dark:text-red-400' : ''">
           {{ data.users.blocked }}
@@ -92,7 +92,7 @@ onMounted(() => {
         <p class="text-xs opacity-60 mt-1">аккаунтов</p>
       </div>
 
-      <div class="bg-white dark:bg-[#1A1A1A] border-[3px] border-black dark:border-white shadow-brutal p-5">
+      <div class="bg-white dark:bg-[#2a1548] border-2 border-black dark:border-white shadow-brutal p-5">
         <p class="text-xs font-bold uppercase tracking-wider opacity-60 mb-1">VPN-ключей</p>
         <p class="text-3xl font-black">{{ data.clients.total }}</p>
         <p class="text-xs opacity-60 mt-1">
@@ -102,7 +102,7 @@ onMounted(() => {
     </div>
 
     <!-- Трафик -->
-    <div class="bg-white dark:bg-[#1A1A1A] border-[3px] border-black dark:border-white shadow-brutal p-6">
+    <div class="bg-white dark:bg-[#2a1548] border-2 border-black dark:border-white shadow-brutal p-6">
       <h2 class="text-sm font-bold uppercase tracking-wider opacity-60 mb-4">Общий трафик</h2>
       <p class="text-4xl font-black">{{ formatBytes(data.traffic.total_used) }}</p>
       <p class="text-xs opacity-60 mt-1">
@@ -113,7 +113,7 @@ onMounted(() => {
     <!-- Два столбца: заявки + последние ключи -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <!-- Последние заявки -->
-      <div class="bg-white dark:bg-[#1A1A1A] border-[3px] border-black dark:border-white shadow-brutal p-6">
+      <div class="bg-white dark:bg-[#2a1548] border-2 border-black dark:border-white shadow-brutal p-6">
         <div class="flex justify-between items-center mb-4">
           <h2 class="text-sm font-bold uppercase tracking-wider opacity-60">Последние заявки</h2>
           <RouterLink
@@ -143,7 +143,7 @@ onMounted(() => {
       </div>
 
       <!-- Последние ключи -->
-      <div class="bg-white dark:bg-[#1A1A1A] border-[3px] border-black dark:border-white shadow-brutal p-6">
+      <div class="bg-white dark:bg-[#2a1548] border-2 border-black dark:border-white shadow-brutal p-6">
         <div class="flex justify-between items-center mb-4">
           <h2 class="text-sm font-bold uppercase tracking-wider opacity-60">Последние ключи</h2>
           <RouterLink
@@ -205,7 +205,7 @@ onMounted(() => {
       <!-- Пусто -->
       <div
         v-else-if="latestPosts.length === 0"
-        class="bg-white dark:bg-[#1A1A1A] border-[3px] border-black dark:border-white shadow-brutal p-6 text-center"
+        class="bg-white dark:bg-[#2a1548] border-2 border-black dark:border-white shadow-brutal p-6 text-center"
       >
         <p class="text-sm opacity-70 mb-3">Постов пока нет</p>
         <RouterLink
@@ -222,7 +222,7 @@ onMounted(() => {
           v-for="post in latestPosts"
           :key="post.id"
           :to="{ name: 'news-post', params: { slug: post.slug } }"
-          class="block bg-white dark:bg-[#1A1A1A] border-[3px] border-black dark:border-white shadow-brutal p-4 hover:shadow-brutal-hover transition-all"
+          class="block bg-white dark:bg-[#2a1548] border-2 border-black dark:border-white shadow-brutal p-4 hover:shadow-brutal-hover transition-all"
         >
           <div class="flex justify-between items-start gap-4">
             <div class="min-w-0 flex-1">

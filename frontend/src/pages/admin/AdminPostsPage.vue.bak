@@ -110,7 +110,7 @@ const hasPosts = computed(() => posts.value.length > 0)
       </div>
 
       <!-- Фильтры -->
-      <div class="bg-white dark:bg-[#1A1A1A] border-[3px] border-black dark:border-white shadow-brutal p-4 mb-6">
+      <div class="bg-white dark:bg-[#2a1548] border-2 border-black dark:border-white shadow-brutal p-4 mb-6">
         <div class="flex gap-3 flex-wrap">
           <input
             v-model="filters.search"
@@ -150,7 +150,7 @@ const hasPosts = computed(() => posts.value.length > 0)
       <!-- Empty -->
       <div
         v-else-if="!hasPosts"
-        class="bg-white dark:bg-[#1A1A1A] border-[3px] border-black dark:border-white shadow-brutal p-12 text-center"
+        class="bg-white dark:bg-[#2a1548] border-2 border-black dark:border-white shadow-brutal p-12 text-center"
       >
         <p class="text-xl font-bold mb-2">Постов нет</p>
         <p class="text-sm opacity-70 mb-6">Создайте первый пост</p>
@@ -162,7 +162,7 @@ const hasPosts = computed(() => posts.value.length > 0)
         <div
           v-for="post in posts"
           :key="post.id"
-          class="bg-white dark:bg-[#1A1A1A] border-[3px] border-black dark:border-white shadow-brutal p-5"
+          class="bg-white dark:bg-[#2a1548] border-2 border-black dark:border-white shadow-brutal p-5"
         >
           <div class="flex justify-between items-start gap-4 flex-wrap">
             <div class="min-w-0 flex-1">

@@ -189,7 +189,7 @@ const hasAnySubscriptions = computed(() => activeCount.value > 0)
     <!-- Контент -->
     <div v-else class="space-y-6 max-w-3xl">
       <!-- Каналы -->
-      <div class="bg-white dark:bg-[#1A1A1A] border-[3px] border-black dark:border-white shadow-brutal p-4">
+      <div class="bg-white dark:bg-[#2a1548] border-2 border-black dark:border-white shadow-brutal p-4">
         <p class="text-xs font-bold uppercase tracking-wider opacity-60 mb-2">
           Каналы доставки
         </p>
@@ -224,7 +224,7 @@ const hasAnySubscriptions = computed(() => activeCount.value > 0)
       </div>
 
       <!-- Все новости -->
-      <div class="bg-white dark:bg-[#1A1A1A] border-[3px] border-black dark:border-white shadow-brutal p-5">
+      <div class="bg-white dark:bg-[#2a1548] border-2 border-black dark:border-white shadow-brutal p-5">
         <div class="flex justify-between items-center gap-4 flex-wrap">
           <div class="min-w-0">
             <h2 class="text-lg font-black uppercase tracking-wider mb-1">
@@ -258,7 +258,7 @@ const hasAnySubscriptions = computed(() => activeCount.value > 0)
       </div>
 
       <!-- По тегам -->
-      <div class="bg-white dark:bg-[#1A1A1A] border-[3px] border-black dark:border-white shadow-brutal p-5">
+      <div class="bg-white dark:bg-[#2a1548] border-2 border-black dark:border-white shadow-brutal p-5">
         <h2 class="text-lg font-black uppercase tracking-wider mb-1">
           По темам
         </h2>
@@ -309,7 +309,7 @@ const hasAnySubscriptions = computed(() => activeCount.value > 0)
       </div>
 
       <!-- Действия -->
-      <div class="bg-white dark:bg-[#1A1A1A] border-[3px] border-black dark:border-white shadow-brutal p-5">
+      <div class="bg-white dark:bg-[#2a1548] border-2 border-black dark:border-white shadow-brutal p-5">
         <div class="flex justify-between items-center gap-4 flex-wrap">
           <div>
             <p class="text-sm font-bold mb-1">Массовые действия</p>

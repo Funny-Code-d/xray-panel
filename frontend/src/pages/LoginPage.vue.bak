@@ -48,7 +48,7 @@ async function handleSubmit() {
       </div>
 
       <!-- Карточка формы -->
-      <div class="bg-white dark:bg-[#1A1A1A] border-[3px] border-black dark:border-white shadow-brutal p-8">
+      <div class="bg-white dark:bg-[#2a1548] border-2 border-black dark:border-white shadow-brutal p-8">
         <!-- Сообщение об успешном сбросе -->
         <div
           v-if="resetSuccess"

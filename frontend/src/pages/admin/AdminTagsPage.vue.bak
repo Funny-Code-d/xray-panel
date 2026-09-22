@@ -156,7 +156,7 @@ const hasTags = computed(() => tags.value.length > 0)
       <!-- Empty -->
       <div
         v-else-if="!hasTags"
-        class="bg-white dark:bg-[#1A1A1A] border-[3px] border-black dark:border-white shadow-brutal p-12 text-center"
+        class="bg-white dark:bg-[#2a1548] border-2 border-black dark:border-white shadow-brutal p-12 text-center"
       >
         <p class="text-xl font-bold mb-2">Тегов нет</p>
         <p class="text-sm opacity-70 mb-6">Создайте первый тег</p>
@@ -168,7 +168,7 @@ const hasTags = computed(() => tags.value.length > 0)
         <div
           v-for="tag in tags"
           :key="tag.id"
-          class="bg-white dark:bg-[#1A1A1A] border-[3px] border-black dark:border-white shadow-brutal p-5"
+          class="bg-white dark:bg-[#2a1548] border-2 border-black dark:border-white shadow-brutal p-5"
         >
           <div class="flex justify-between items-start gap-4 flex-wrap">
             <div class="min-w-0 flex-1">

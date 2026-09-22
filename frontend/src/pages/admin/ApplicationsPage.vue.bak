@@ -106,7 +106,7 @@ async function handleReject(reason) {
       <!-- Empty -->
       <div
         v-else-if="users.length === 0"
-        class="bg-white dark:bg-[#1A1A1A] border-[3px] border-black dark:border-white shadow-brutal p-12 text-center"
+        class="bg-white dark:bg-[#2a1548] border-2 border-black dark:border-white shadow-brutal p-12 text-center"
       >
         <p class="text-xl font-bold mb-2">Заявок нет</p>
         <p class="text-sm opacity-70">Все заявки обработаны</p>
@@ -117,7 +117,7 @@ async function handleReject(reason) {
         <div
           v-for="user in users"
           :key="user.id"
-          class="bg-white dark:bg-[#1A1A1A] border-[3px] border-black dark:border-white shadow-brutal p-5"
+          class="bg-white dark:bg-[#2a1548] border-2 border-black dark:border-white shadow-brutal p-5"
         >
           <div class="flex justify-between items-start flex-wrap gap-4">
             <!-- Информация -->

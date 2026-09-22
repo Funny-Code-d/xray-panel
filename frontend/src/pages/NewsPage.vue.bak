@@ -113,7 +113,7 @@ const hasPosts = computed(() => posts.value.length > 0)
     <!-- Empty -->
     <div
       v-else-if="!hasPosts"
-      class="bg-white dark:bg-[#1A1A1A] border-[3px] border-black dark:border-white shadow-brutal p-12 text-center"
+      class="bg-white dark:bg-[#2a1548] border-2 border-black dark:border-white shadow-brutal p-12 text-center"
     >
       <p class="text-xl font-bold mb-2">Новостей пока нет</p>
       <p class="text-sm opacity-70">Скоро появятся</p>
@@ -125,7 +125,7 @@ const hasPosts = computed(() => posts.value.length > 0)
         v-for="(post, index) in posts"
         :key="post.id"
         :to="{ name: 'news-post', params: { slug: post.slug } }"
-        class="animate-list-item block bg-white dark:bg-[#1A1A1A] border-[3px] border-black dark:border-white shadow-brutal p-6 hover:shadow-brutal-hover transition-all"
+        class="animate-list-item block bg-white dark:bg-[#2a1548] border-2 border-black dark:border-white shadow-brutal p-6 hover:shadow-brutal-hover transition-all"
         :style="{ animationDelay: `${Math.min(index, 10) * 30}ms` }"
       >
         <!-- Теги -->

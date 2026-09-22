@@ -51,7 +51,7 @@ async function handleSubmit() {
       </div>
 
       <!-- Карточка формы -->
-      <div class="bg-white dark:bg-[#1A1A1A] border-[3px] border-black dark:border-white shadow-brutal p-8">
+      <div class="bg-white dark:bg-[#2a1548] border-2 border-black dark:border-white shadow-brutal p-8">
         <form @submit.prevent="handleSubmit" class="space-y-4">
           <!-- Имя и Фамилия -->
           <div class="grid grid-cols-2 gap-3">

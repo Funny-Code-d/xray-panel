@@ -47,7 +47,7 @@ function goBack() {
       </div>
 
       <!-- Что это -->
-      <div class="bg-white dark:bg-[#1A1A1A] border-[3px] border-black dark:border-white shadow-brutal p-6">
+      <div class="bg-white dark:bg-[#2a1548] border-2 border-black dark:border-white shadow-brutal p-6">
         <h2 class="text-lg font-black uppercase tracking-wider mb-3">
           Что это
         </h2>
@@ -63,7 +63,7 @@ function goBack() {
       </div>
 
       <!-- Возможности -->
-      <div class="bg-white dark:bg-[#1A1A1A] border-[3px] border-black dark:border-white shadow-brutal p-6">
+      <div class="bg-white dark:bg-[#2a1548] border-2 border-black dark:border-white shadow-brutal p-6">
         <h2 class="text-lg font-black uppercase tracking-wider mb-4">
           Возможности
         </h2>
@@ -92,7 +92,7 @@ function goBack() {
       </div>
 
       <!-- Стек -->
-      <div class="bg-white dark:bg-[#1A1A1A] border-[3px] border-black dark:border-white shadow-brutal p-6">
+      <div class="bg-white dark:bg-[#2a1548] border-2 border-black dark:border-white shadow-brutal p-6">
         <h2 class="text-lg font-black uppercase tracking-wider mb-4">
           Технологии
         </h2>
@@ -137,7 +137,7 @@ function goBack() {
       </div>
 
       <!-- Открытый код -->
-      <div class="bg-white dark:bg-[#1A1A1A] border-[3px] border-black dark:border-white shadow-brutal p-6">
+      <div class="bg-white dark:bg-[#2a1548] border-2 border-black dark:border-white shadow-brutal p-6">
         <h2 class="text-lg font-black uppercase tracking-wider mb-3">
           Открытый код
         </h2>
@@ -160,7 +160,7 @@ function goBack() {
       </div>
 
       <!-- Поддержать проект -->
-      <div class="bg-white dark:bg-[#1A1A1A] border-[3px] border-black dark:border-white shadow-brutal p-6">
+      <div class="bg-white dark:bg-[#2a1548] border-2 border-black dark:border-white shadow-brutal p-6">
         <h2 class="text-lg font-black uppercase tracking-wider mb-3">
           Поддержать проект
         </h2>

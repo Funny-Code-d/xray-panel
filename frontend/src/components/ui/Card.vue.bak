@@ -1,5 +1,5 @@
 <template>
-  <div class="bg-white dark:bg-[#1A1A1A] border-[3px] border-black dark:border-white shadow-brutal">
+  <div class="bg-white dark:bg-[#2a1548] border-2 border-black dark:border-white shadow-brutal">
     <div v-if="$slots.header" class="px-6 py-4 border-b-2 border-black dark:border-white">
       <slot name="header" />
     </div>

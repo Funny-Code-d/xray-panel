@@ -29,7 +29,7 @@ async function refreshStatus() {
 <template>
   <div class="min-h-screen flex items-center justify-center bg-white dark:bg-[#1a0b2e] px-4">
     <div class="w-full max-w-md">
-      <div class="bg-white dark:bg-[#1A1A1A] border-[3px] border-black dark:border-white shadow-brutal p-8 text-center">
+      <div class="bg-white dark:bg-[#2a1548] border-2 border-black dark:border-white shadow-brutal p-8 text-center">
         <!-- Иконка: часы для pending, крест для rejected -->
         <div
           class="mx-auto w-16 h-16 flex items-center justify-center border-2 mb-6"
