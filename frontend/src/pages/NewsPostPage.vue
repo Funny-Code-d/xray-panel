@@ -86,9 +86,14 @@ onMounted(fetchPost)
       </div>
 
       <!-- Контент -->
-      <div class="prose prose-lg max-w-none dark:prose-invert">
-        <div v-html="post.content"></div>
-      </div>
+      <div class="prose prose-lg max-w-none dark:prose-invert
+            prose-headings:font-black prose-headings:uppercase prose-headings:tracking-wider
+            prose-h2:border-b-2 prose-h2:border-black dark:prose-h2:border-white prose-h2:pb-2
+            prose-a:text-blue-600 dark:prose-a:text-orange-500 prose-a:font-bold
+            prose-code:bg-black/5 dark:prose-code:bg-white/10 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded
+            prose-strong:font-black">
+            <div v-html="post.content"></div>
+        </div>
     </article>
   </AppLayout>
 </template>

@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
 
 /* Активируем dark mode через класс .dark на <html> */
 @custom-variant dark (&:where(.dark, .dark *));
@@ -7,21 +8,25 @@
   /* Шрифт */
   --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
 
-  /* Акценты */
-  --color-accent: #2563eb;
-  --color-accent-dark: #f97316;
+  /* Жёлтый акцент */
+  --color-accent: #FFD700;
+  --color-accent-hover: #FFC700;
+  --color-accent-dark: #E6C200;
+  --color-accent-text: #B8860B;  /* DarkGoldenrod — читается на белом */
 
   /* Семантические цвета (light) */
-  --color-bg: #ffffff;
+  --color-bg: #FDFBF7;         /* кремовый фон */
+  --color-bg-card: #FFFFFF;    /* белые карточки */
   --color-fg: #000000;
   --color-border-strong: #000000;
-  --color-shadow: #2563eb;
+  --color-shadow: #000000;
 
   /* Семантические цвета (dark) */
   --color-bg-dark: #1a0b2e;
+  --color-bg-card-dark: #2a1548;
   --color-fg-dark: #f5f5f5;
   --color-border-strong-dark: #f5f5f5;
-  --color-shadow-dark: #f97316;
+  --color-shadow-dark: #FFD700;
 }
 
 /* Базовые стили */
@@ -44,29 +49,32 @@ html.dark {
   --color-fg: var(--color-fg-dark);
 }
 
-/* Утилиты для «жёстких» теней */
+/* ============================================
+   Утилиты: жёсткие тени (brutalism)
+   ============================================ */
 @layer utilities {
   .shadow-brutal {
-    box-shadow: 10px 10px 0 var(--color-shadow);
+    box-shadow: 6px 6px 0 var(--color-shadow);
   }
 
   .shadow-brutal-sm {
-    box-shadow: 7px 7px 0 var(--color-shadow);
+    box-shadow: 3px 3px 0 var(--color-shadow);
   }
 
   .shadow-brutal-lg {
-    box-shadow: 12px 12px 0 var(--color-shadow);
+    box-shadow: 8px 8px 0 var(--color-shadow);
   }
 
   .shadow-brutal-hover:hover {
-    box-shadow: 7px 7px 0 var(--color-shadow);
+    box-shadow: 3px 3px 0 var(--color-shadow);
     transform: translate(3px, 3px);
   }
 }
 
-/* === Анимации переходов между роутами === */
+/* ============================================
+   Анимации переходов между роутами
+   ============================================ */
 
-/* Fade + slide up (для входа) */
 .fade-slide-enter-active {
   transition: opacity 0.3s ease-out, transform 0.3s ease-out;
 }
@@ -85,47 +93,7 @@ html.dark {
   transform: translateY(-20px);
 }
 
-/* Fade + slide вправо (для перехода «вперёд») */
-.slide-right-enter-active {
-  transition: opacity 0.3s ease-out, transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.slide-right-leave-active {
-  transition: opacity 0.2s ease-in, transform 0.2s cubic-bezier(0.4, 0, 1, 1);
-}
-
-.slide-right-enter-from {
-  opacity: 0;
-  transform: translateX(40px);
-}
-
-.slide-right-leave-to {
-  opacity: 0;
-  transform: translateX(-40px);
-}
-
-/* Плавное появление полей в форме */
-@keyframes fieldAppear {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-    max-height: 0;
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-    max-height: 200px;
-  }
-}
-
-.field-appear {
-  animation: fieldAppear 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-
-/* === Дополнительные анимации === */
-
-/* Появление поля */
+/* Анимация появления поля */
 @keyframes fieldAppear {
   from {
     opacity: 0;
@@ -135,6 +103,10 @@ html.dark {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+.animate-field {
+  animation: fieldAppear 0.3s ease-out;
 }
 
 /* Каскадное появление элементов списка */
@@ -147,6 +119,10 @@ html.dark {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+.animate-list-item {
+  animation: listItemAppear 0.4s ease-out both;
 }
 
 /* Появление модалки */
@@ -167,6 +143,14 @@ html.dark {
   to { opacity: 1; }
 }
 
+.animate-modal {
+  animation: modalIn 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.animate-overlay {
+  animation: overlayIn 0.2s ease-out;
+}
+
 /* Съезд навигации сверху */
 @keyframes navSlideDown {
   from {
@@ -179,7 +163,82 @@ html.dark {
   }
 }
 
-/* Глобальная стилизация скроллбара */
+.animate-nav {
+  animation: navSlideDown 0.4s ease-out;
+}
+
+/* ============================================
+   LED-индикатор сервера
+   ============================================ */
+
+@keyframes led-pulse {
+  0%, 100% {
+    opacity: 1;
+    box-shadow: 0 0 8px currentColor, 0 0 12px currentColor;
+  }
+  50% {
+    opacity: 0.6;
+    box-shadow: 0 0 4px currentColor, 0 0 6px currentColor;
+  }
+}
+
+.led {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid #000;
+}
+
+.dark .led {
+  border-color: #fff;
+}
+
+.led-online {
+  background-color: #10b981;
+  color: #10b981;
+  animation: led-pulse 2s ease-in-out infinite;
+}
+
+.led-offline {
+  background-color: #ef4444;
+  color: #ef4444;
+}
+
+.led-maintenance {
+  background-color: #f59e0b;
+  color: #f59e0b;
+  animation: led-pulse 1s ease-in-out infinite;
+}
+
+.led-unknown {
+  background-color: #64748b;
+  color: #64748b;
+}
+
+/* ============================================
+   Стилизация скроллбара
+   ============================================ */
+
+.overflow-y-auto::-webkit-scrollbar {
+  width: 8px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb {
+  background: #000;
+  border: 2px solid #fff;
+}
+
+.dark .overflow-y-auto::-webkit-scrollbar-thumb {
+  background: #FFD700;
+  border-color: #1a0b2e;
+}
+
+/* Глобальный скроллбар */
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
@@ -191,25 +250,108 @@ html.dark {
 
 ::-webkit-scrollbar-thumb {
   background: #000;
-  border: 2px solid #fff;
+  border: 2px solid #FDFBF7;
 }
 
-.dark ::-webkit-scrollbar-thumb {
-  background: #f5f5f5;
+html.dark ::-webkit-scrollbar-thumb {
+  background: #FFD700;
   border-color: #1a0b2e;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #3b82f6;
+  background: #FFD700;
 }
 
-.dark ::-webkit-scrollbar-thumb:hover {
-  background: #f97316;
+html.dark ::-webkit-scrollbar-thumb:hover {
+  background: #FFC700;
 }
 
-/* Утилиты */
-.animate-field { animation: fieldAppear 0.3s ease-out; }
-.animate-list-item { animation: listItemAppear 0.4s ease-out both; }
-.animate-modal { animation: modalIn 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
-.animate-overlay { animation: overlayIn 0.2s ease-out; }
-.animate-nav { animation: navSlideDown 0.4s ease-out; }
+/* ============================================
+   Стилизация HTML-контента постов (fallback)
+   ============================================ */
+/* Если не используешь `prose`, эти стили применятся к классу .post-content */
+
+.post-content h2 {
+  font-size: 1.75rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 2.5rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 3px solid #000;
+}
+
+.dark .post-content h2 {
+  border-color: #FFD700;
+}
+
+.post-content h3 {
+  font-size: 1.25rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+}
+
+.post-content p {
+  margin-bottom: 1.25rem;
+  line-height: 1.75;
+  font-size: 1.05rem;
+}
+
+.post-content ul,
+.post-content ol {
+  margin-bottom: 1.25rem;
+  padding-left: 1.75rem;
+}
+
+.post-content ul { list-style: square; }
+.post-content ol { list-style: decimal; }
+
+.post-content li {
+  margin-bottom: 0.5rem;
+  line-height: 1.65;
+}
+
+.post-content a {
+  color: #000;
+  font-weight: 700;
+  text-decoration: none;
+  border-bottom: 2px solid #FFD700;
+  transition: opacity 0.15s;
+}
+
+.post-content a:hover {
+  opacity: 0.7;
+}
+
+.dark .post-content a {
+  color: #FFD700;
+}
+
+.post-content code {
+  background: rgba(0, 0, 0, 0.06);
+  padding: 0.15rem 0.4rem;
+  font-family: ui-monospace, monospace;
+  font-size: 0.9em;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.dark .post-content code {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.post-content strong {
+  font-weight: 900;
+}
+
+.post-content blockquote {
+  border-left: 4px solid #FFD700;
+  padding-left: 1rem;
+  margin: 1.5rem 0;
+  font-style: italic;
+  opacity: 0.85;
+}
