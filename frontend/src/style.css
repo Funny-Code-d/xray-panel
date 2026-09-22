@@ -5,31 +5,33 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  /* Шрифт */
-  --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
+  /* Шрифты */
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-heading: 'Space Grotesk', 'Arial Black', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
 
-  /* Жёлтый акцент */
-  --color-accent: #FFD700;
-  --color-accent-hover: #FFC700;
-  --color-accent-dark: #E6C200;
-  --color-accent-text: #B8860B;  /* DarkGoldenrod — читается на белом */
+  /* === Акценты === */
+  --color-accent: #FFD700;          /* Золотой — лого, главный акцент */
+  --color-accent-hover: #FFC700;    /* Темнее для hover */
+  --color-accent-2: #FF4911;        /* Оранжево-красный — кнопки, ссылки (light) */
+  --color-accent-2-dark: #FF00FF;   /* Маджента — кнопки, ссылки (dark) */
 
-  /* Семантические цвета (light) */
-  --color-bg: #FDFBF7;         /* кремовый фон */
-  --color-bg-card: #FFFFFF;    /* белые карточки */
+  /* === Светлая тема === */
+  --color-bg: #FFFFFF;
+  --color-bg-card: #FFFFFF;
   --color-fg: #000000;
   --color-border-strong: #000000;
   --color-shadow: #000000;
 
-  /* Семантические цвета (dark) */
-  --color-bg-dark: #1a0b2e;
-  --color-bg-card-dark: #2a1548;
-  --color-fg-dark: #f5f5f5;
-  --color-border-strong-dark: #f5f5f5;
-  --color-shadow-dark: #FFD700;
+  /* === Тёмная тема === */
+  --color-bg-dark: #121212;
+  --color-bg-card-dark: #1A1A1A;
+  --color-fg-dark: #FFFFFF;
+  --color-border-strong-dark: #FFFFFF;
+  --color-shadow-dark: #FFFFFF;      /* Белая тень в тёмной теме */
 }
 
-/* Базовые стили */
+/* === Базовые стили === */
 html, body {
   background-color: var(--color-bg);
   color: var(--color-fg);
@@ -47,34 +49,38 @@ html.dark {
   --color-shadow: var(--color-shadow-dark);
   --color-bg: var(--color-bg-dark);
   --color-fg: var(--color-fg-dark);
+  --color-accent-2: var(--color-accent-2-dark);
 }
 
-/* ============================================
-   Утилиты: жёсткие тени (brutalism)
-   ============================================ */
+/* === Заголовки === */
+h1, h2, h3, h4, h5, h6,
+.font-heading {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+/* === Утилиты: жёсткие тени === */
 @layer utilities {
   .shadow-brutal {
-    box-shadow: 6px 6px 0 var(--color-shadow);
+    box-shadow: 4px 4px 0 var(--color-shadow);
   }
 
   .shadow-brutal-sm {
-    box-shadow: 3px 3px 0 var(--color-shadow);
+    box-shadow: 2px 2px 0 var(--color-shadow);
   }
 
   .shadow-brutal-lg {
-    box-shadow: 8px 8px 0 var(--color-shadow);
+    box-shadow: 6px 6px 0 var(--color-shadow);
   }
 
   .shadow-brutal-hover:hover {
-    box-shadow: 3px 3px 0 var(--color-shadow);
-    transform: translate(3px, 3px);
+    box-shadow: 2px 2px 0 var(--color-shadow);
+    transform: translate(2px, 2px);
   }
 }
 
-/* ============================================
-   Анимации переходов между роутами
-   ============================================ */
-
+/* === Анимации переходов между роутами === */
 .fade-slide-enter-active {
   transition: opacity 0.3s ease-out, transform 0.3s ease-out;
 }
@@ -93,16 +99,10 @@ html.dark {
   transform: translateY(-20px);
 }
 
-/* Анимация появления поля */
+/* Появление поля */
 @keyframes fieldAppear {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .animate-field {
@@ -111,14 +111,8 @@ html.dark {
 
 /* Каскадное появление элементов списка */
 @keyframes listItemAppear {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .animate-list-item {
@@ -127,17 +121,10 @@ html.dark {
 
 /* Появление модалки */
 @keyframes modalIn {
-  from {
-    opacity: 0;
-    transform: scale(0.95) translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
+  from { opacity: 0; transform: scale(0.95) translateY(10px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
 }
 
-/* Затемнение фона модалки */
 @keyframes overlayIn {
   from { opacity: 0; }
   to { opacity: 1; }
@@ -153,24 +140,15 @@ html.dark {
 
 /* Съезд навигации сверху */
 @keyframes navSlideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .animate-nav {
   animation: navSlideDown 0.4s ease-out;
 }
 
-/* ============================================
-   LED-индикатор сервера
-   ============================================ */
-
+/* === LED-индикатор сервера === */
 @keyframes led-pulse {
   0%, 100% {
     opacity: 1;
@@ -216,29 +194,7 @@ html.dark {
   color: #64748b;
 }
 
-/* ============================================
-   Стилизация скроллбара
-   ============================================ */
-
-.overflow-y-auto::-webkit-scrollbar {
-  width: 8px;
-}
-
-.overflow-y-auto::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.overflow-y-auto::-webkit-scrollbar-thumb {
-  background: #000;
-  border: 2px solid #fff;
-}
-
-.dark .overflow-y-auto::-webkit-scrollbar-thumb {
-  background: #FFD700;
-  border-color: #1a0b2e;
-}
-
-/* Глобальный скроллбар */
+/* === Скроллбар === */
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
@@ -250,28 +206,25 @@ html.dark {
 
 ::-webkit-scrollbar-thumb {
   background: #000;
-  border: 2px solid #FDFBF7;
+  border: 2px solid #FFFFFF;
 }
 
-html.dark ::-webkit-scrollbar-thumb {
+html.dark ::webkit-scrollbar-thumb {
   background: #FFD700;
-  border-color: #1a0b2e;
+  border-color: #121212;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #FFD700;
+  background: #FF4911;
 }
 
 html.dark ::-webkit-scrollbar-thumb:hover {
-  background: #FFC700;
+  background: #FF00FF;
 }
 
-/* ============================================
-   Стилизация HTML-контента постов (fallback)
-   ============================================ */
-/* Если не используешь `prose`, эти стили применятся к классу .post-content */
-
+/* === HTML-контент постов (fallback) === */
 .post-content h2 {
+  font-family: var(--font-heading);
   font-size: 1.75rem;
   font-weight: 900;
   text-transform: uppercase;
@@ -287,6 +240,7 @@ html.dark ::-webkit-scrollbar-thumb:hover {
 }
 
 .post-content h3 {
+  font-family: var(--font-heading);
   font-size: 1.25rem;
   font-weight: 800;
   text-transform: uppercase;
@@ -316,10 +270,10 @@ html.dark ::-webkit-scrollbar-thumb:hover {
 }
 
 .post-content a {
-  color: #000;
+  color: var(--color-accent-2);
   font-weight: 700;
   text-decoration: none;
-  border-bottom: 2px solid #FFD700;
+  border-bottom: 2px solid var(--color-accent-2);
   transition: opacity 0.15s;
 }
 
@@ -327,14 +281,10 @@ html.dark ::-webkit-scrollbar-thumb:hover {
   opacity: 0.7;
 }
 
-.dark .post-content a {
-  color: #FFD700;
-}
-
 .post-content code {
   background: rgba(0, 0, 0, 0.06);
   padding: 0.15rem 0.4rem;
-  font-family: ui-monospace, monospace;
+  font-family: var(--font-mono);
   font-size: 0.9em;
   border: 1px solid rgba(0, 0, 0, 0.1);
 }
@@ -349,7 +299,7 @@ html.dark ::-webkit-scrollbar-thumb:hover {
 }
 
 .post-content blockquote {
-  border-left: 4px solid #FFD700;
+  border-left: 4px solid var(--color-accent);
   padding-left: 1rem;
   margin: 1.5rem 0;
   font-style: italic;

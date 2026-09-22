@@ -13,8 +13,8 @@ defineProps({
 })
 
 const variants = {
-  primary: 'bg-blue-600 dark:bg-orange-500 text-white border-2 border-black dark:border-white hover:shadow-brutal-hover shadow-brutal',
-  secondary: 'bg-white dark:bg-[#2a1548] text-black dark:text-white border-2 border-black dark:border-white hover:shadow-brutal-hover shadow-brutal',
+  primary: 'bg-[#FFD700] text-black border-2 border-black dark:border-white hover:shadow-brutal-hover shadow-brutal font-heading font-bold uppercase',
+  secondary: 'bg-[#FF4911] dark:bg-[#FF00FF] text-white border-2 border-black dark:border-white hover:shadow-brutal-hover shadow-brutal font-heading font-bold uppercase',
   danger: 'bg-red-500 text-white border-2 border-black dark:border-white hover:shadow-brutal-hover shadow-brutal',
   ghost: 'bg-transparent text-black dark:text-white border-2 border-transparent hover:border-black dark:hover:border-white',
 }

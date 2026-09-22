@@ -92,7 +92,7 @@ onMounted(fetchLatestPosts)
 
       <RouterLink
         :to="{ name: 'clients' }"
-        class="text-xs font-bold uppercase tracking-wide text-blue-600 dark:text-orange-500 hover:underline"
+        class="text-xs font-bold uppercase tracking-wide text-[#FF4911] dark:text-[#FF00FF] border-b-2 border-[#FF4911] dark:border-[#FF00FF] hover:opacity-80 transition hover:underline"
       >
         Управление ключами →
       </RouterLink>
@@ -105,7 +105,7 @@ onMounted(fetchLatestPosts)
       <h2 class="text-xl font-black uppercase tracking-wider">Последние новости</h2>
       <RouterLink
         :to="{ name: 'news' }"
-        class="text-xs font-bold uppercase tracking-wide text-blue-600 dark:text-orange-500 hover:underline"
+        class="text-xs font-bold uppercase tracking-wide text-[#FF4911] dark:text-[#FF00FF] border-b-2 border-[#FF4911] dark:border-[#FF00FF] hover:opacity-80 transition hover:underline"
       >
         Все новости →
       </RouterLink>

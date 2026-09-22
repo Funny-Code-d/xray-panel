@@ -69,23 +69,23 @@ function goBack() {
         </h2>
         <ul class="space-y-3 text-sm opacity-80">
           <li class="flex gap-3">
-            <span class="text-blue-600 dark:text-orange-500 font-bold shrink-0">01</span>
+            <span class="text-[#FF4911] dark:text-[#FF00FF] border-b-2 border-[#FF4911] dark:border-[#FF00FF] hover:opacity-80 transition font-bold shrink-0">01</span>
             <span><b>Личный кабинет</b> — создание ключей, QR-код для подключения, статистика трафика</span>
           </li>
           <li class="flex gap-3">
-            <span class="text-blue-600 dark:text-orange-500 font-bold shrink-0">02</span>
+            <span class="text-[#FF4911] dark:text-[#FF00FF] border-b-2 border-[#FF4911] dark:border-[#FF00FF] hover:opacity-80 transition font-bold shrink-0">02</span>
             <span><b>Админ-панель</b> — модерация заявок, роли, блокировки, лимиты</span>
           </li>
           <li class="flex gap-3">
-            <span class="text-blue-600 dark:text-orange-500 font-bold shrink-0">03</span>
+            <span class="text-[#FF4911] dark:text-[#FF00FF] border-b-2 border-[#FF4911] dark:border-[#FF00FF] hover:opacity-80 transition font-bold shrink-0">03</span>
             <span><b>Мульти-сервер</b> — управление несколькими узлами из одной панели</span>
           </li>
           <li class="flex gap-3">
-            <span class="text-blue-600 dark:text-orange-500 font-bold shrink-0">04</span>
+            <span class="text-[#FF4911] dark:text-[#FF00FF] border-b-2 border-[#FF4911] dark:border-[#FF00FF] hover:opacity-80 transition font-bold shrink-0">04</span>
             <span><b>Статистика</b> — сбор трафика с серверов, разбивка по дням</span>
           </li>
           <li class="flex gap-3">
-            <span class="text-blue-600 dark:text-orange-500 font-bold shrink-0">05</span>
+            <span class="text-[#FF4911] dark:text-[#FF00FF] border-b-2 border-[#FF4911] dark:border-[#FF00FF] hover:opacity-80 transition font-bold shrink-0">05</span>
             <span><b>Безопасность</b> — Sanctum-токены, модерация, блокировки</span>
           </li>
         </ul>

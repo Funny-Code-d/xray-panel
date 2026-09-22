@@ -118,7 +118,7 @@ onMounted(() => {
           <h2 class="text-sm font-bold uppercase tracking-wider opacity-60">Последние заявки</h2>
           <RouterLink
             :to="{ name: 'admin-applications' }"
-            class="text-xs font-bold uppercase text-blue-600 dark:text-orange-500 hover:underline"
+            class="text-xs font-bold uppercase text-[#FF4911] dark:text-[#FF00FF] border-b-2 border-[#FF4911] dark:border-[#FF00FF] hover:opacity-80 transition hover:underline"
           >
             Все →
           </RouterLink>
@@ -148,7 +148,7 @@ onMounted(() => {
           <h2 class="text-sm font-bold uppercase tracking-wider opacity-60">Последние ключи</h2>
           <RouterLink
             :to="{ name: 'admin-users' }"
-            class="text-xs font-bold uppercase text-blue-600 dark:text-orange-500 hover:underline"
+            class="text-xs font-bold uppercase text-[#FF4911] dark:text-[#FF00FF] border-b-2 border-[#FF4911] dark:border-[#FF00FF] hover:opacity-80 transition hover:underline"
           >
             Все →
           </RouterLink>
@@ -191,7 +191,7 @@ onMounted(() => {
         <h2 class="text-xl font-black uppercase tracking-wider">Последние новости</h2>
         <RouterLink
           :to="{ name: 'admin-posts' }"
-          class="text-xs font-bold uppercase tracking-wide text-blue-600 dark:text-orange-500 hover:underline"
+          class="text-xs font-bold uppercase tracking-wide text-[#FF4911] dark:text-[#FF00FF] border-b-2 border-[#FF4911] dark:border-[#FF00FF] hover:opacity-80 transition hover:underline"
         >
           Управление постами →
         </RouterLink>
@@ -269,7 +269,7 @@ onMounted(() => {
         <div class="pt-2">
           <RouterLink
             :to="{ name: 'admin-posts' }"
-            class="inline-block text-xs font-bold uppercase tracking-wide text-blue-600 dark:text-orange-500 hover:underline"
+            class="inline-block text-xs font-bold uppercase tracking-wide text-[#FF4911] dark:text-[#FF00FF] border-b-2 border-[#FF4911] dark:border-[#FF00FF] hover:opacity-80 transition hover:underline"
           >
             Все посты →
           </RouterLink>
