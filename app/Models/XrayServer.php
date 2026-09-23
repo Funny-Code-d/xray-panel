@@ -10,6 +10,8 @@ class XrayServer extends Model
 {
     use HasFactory;
 
+    protected $appends = ['country_flag'];
+
     protected $fillable = [
         'name', 'host', 'port',
         'api_host', 'api_port',
@@ -21,6 +23,9 @@ class XrayServer extends Model
         'api_token', 'is_active', 'last_seen_at', 'status',
         'alter_id',
         'agent_port',
+        'country',
+        'country_name',
+        'city',
     ];
 
     protected $casts = [
@@ -35,7 +40,6 @@ class XrayServer extends Model
     ];
 
     protected $hidden = [
-        'api_token',
         'reality_private_key',  // приватный ключ никогда не отдаём в JSON
     ];
 
@@ -101,5 +105,24 @@ class XrayServer extends Model
         $fragment = rawurlencode($name);
 
         return "vless://{$uuid}@{$this->host}:{$this->port}?{$query}#{$fragment}";
+    }
+
+    /**
+     * Эмодзи-флаг из ISO-кода страны (DE → 🇩🇪).
+     */
+    public function getCountryFlagAttribute(): string
+    {
+        if (!$this->country || strlen($this->country) !== 2) {
+            return '🌐';
+        }
+
+        $code = strtoupper($this->country);
+        $flag = '';
+
+        foreach (str_split($code) as $char) {
+            $flag .= mb_chr(ord($char) + 127397, 'UTF-8');
+        }
+
+        return $flag;
     }
 }

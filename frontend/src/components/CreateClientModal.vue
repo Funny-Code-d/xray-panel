@@ -16,7 +16,9 @@ const auth = useAuthStore()
 const name = ref('')
 const expiresAt = ref('')
 const userId = ref('')
+const serverId = ref('')
 const users = ref([])
+const servers = ref([])
 const loading = ref(false)
 const errors = ref({})
 
@@ -26,21 +28,37 @@ watch(() => props.modelValue, (open) => {
     name.value = ''
     expiresAt.value = ''
     userId.value = ''
+    serverId.value = ''
     errors.value = {}
+
     if (auth.isAdmin) {
       fetchUsers()
     }
+
+    fetchServers()
   }
 })
 
 async function fetchUsers() {
   try {
-    // Эндпоинт для списка пользователей (сделаем позже)
     const { data } = await api.get('/admin/users')
     users.value = data.data || data
   } catch (e) {
-    // Если эндпоинта нет — просто не показываем выбор
     users.value = []
+  }
+}
+
+async function fetchServers() {
+  try {
+    const { data } = await api.get('/servers')
+    servers.value = data
+
+    // Если сервер один — выбираем автоматически
+    if (data.length === 1) {
+      serverId.value = data[0].id
+    }
+  } catch (e) {
+    servers.value = []
   }
 }
 
@@ -53,9 +71,12 @@ async function handleSubmit() {
     expires_at: expiresAt.value || null,
   }
 
-  // Добавляем user_id только если админ выбрал конкретного пользователя
   if (auth.isAdmin && userId.value) {
     payload.user_id = Number(userId.value)
+  }
+
+  if (serverId.value) {
+    payload.xray_server_id = Number(serverId.value)
   }
 
   try {
@@ -75,7 +96,11 @@ async function handleSubmit() {
 </script>
 
 <template>
-  <Modal :model-value="modelValue" @update:model-value="$emit('update:modelValue', $event)" title="Новый ключ">
+  <Modal
+    :model-value="modelValue"
+    @update:model-value="$emit('update:modelValue', $event)"
+    title="Новый ключ"
+  >
     <form @submit.prevent="handleSubmit" class="space-y-5">
       <Input
         v-model="name"
@@ -91,6 +116,37 @@ async function handleSubmit() {
         :error="errors.expires_at?.[0]"
       />
 
+      <!-- Выбор сервера -->
+      <div>
+        <label class="block text-sm font-bold uppercase tracking-wide mb-2">
+          Сервер
+        </label>
+
+        <div v-if="servers.length === 0" class="text-sm opacity-60">
+          Нет доступных серверов
+        </div>
+
+        <select
+          v-else
+          v-model="serverId"
+          class="w-full px-3 py-2 bg-white dark:bg-[#121212] text-black dark:text-white border-2 border-black dark:border-white focus:outline-none focus:shadow-brutal-sm transition-all"
+          :class="errors.xray_server_id ? 'border-red-500' : 'border-black dark:border-white'"
+        >
+          <option value="">Автоматически</option>
+          <option v-for="server in servers" :key="server.id" :value="server.id">
+            {{ server.country_flag }} {{ server.name }} — {{ server.host }}
+            ({{ server.vpn_clients_count }} клиентов)
+          </option>
+        </select>
+
+        <p v-if="errors.xray_server_id" class="mt-1 text-sm font-medium text-red-600 dark:text-red-400">
+          {{ errors.xray_server_id[0] }}
+        </p>
+        <p class="mt-1 text-xs opacity-60">
+          «Автоматически» — выберется первый доступный сервер
+        </p>
+      </div>
+
       <!-- Выбор пользователя (только для админа) -->
       <div v-if="auth.isAdmin">
         <label class="block text-sm font-bold uppercase tracking-wide mb-2">
@@ -98,7 +154,7 @@ async function handleSubmit() {
         </label>
         <select
           v-model="userId"
-          class="w-full px-3 py-2 bg-white dark:bg-[#1a0b2e] text-black dark:text-white border-2 border-black dark:border-white focus:outline-none focus:shadow-brutal-sm transition-all"
+          class="w-full px-3 py-2 bg-white dark:bg-[#121212] text-black dark:text-white border-2 border-black dark:border-white focus:outline-none focus:shadow-brutal-sm transition-all"
           :class="errors.user_id ? 'border-red-500' : 'border-black dark:border-white'"
         >
           <option value="">— Создать для себя —</option>
@@ -108,9 +164,6 @@ async function handleSubmit() {
         </select>
         <p v-if="errors.user_id" class="mt-1 text-sm font-medium text-red-600 dark:text-red-400">
           {{ errors.user_id[0] }}
-        </p>
-        <p class="mt-1 text-xs opacity-60">
-          Оставьте пустым, чтобы создать ключ для себя
         </p>
       </div>
 
@@ -124,7 +177,13 @@ async function handleSubmit() {
         >
           Отмена
         </Button>
-        <Button type="submit" variant="primary" :loading="loading" class="flex-1">
+        <Button
+          type="submit"
+          variant="primary"
+          :loading="loading"
+          class="flex-1"
+          :disabled="servers.length === 0"
+        >
           Создать
         </Button>
       </div>

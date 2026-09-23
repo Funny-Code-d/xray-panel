@@ -17,6 +17,7 @@ return new class extends Migration
             // API
             $table->string('api_host')->default('127.0.0.1');
             $table->unsignedInteger('api_port')->default(10085);
+            $table->unsignedInteger('agent_port')->default(8080);
 
             // Протокол
             $table->string('protocol')->default('vless');           // vless | vmess

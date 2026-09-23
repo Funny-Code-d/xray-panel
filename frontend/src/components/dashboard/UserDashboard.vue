@@ -3,6 +3,7 @@ import { ref, onMounted, computed } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import api from '@/api/axios'
 import { formatBytes, formatDate } from '@/utils/format'
+import ServerMiniCard from '@/components/server/ServerMiniCard.vue'
 
 const auth = useAuthStore()
 
@@ -24,6 +25,21 @@ const trafficPercent = computed(() => {
 
 const clientsCount = computed(() => auth.user?.vpn_clients_count ?? 0)
 
+// Серверы
+const servers = ref([])
+const loadingServers = ref(true)
+
+async function fetchServers() {
+  try {
+    const { data } = await api.get('/servers')
+    servers.value = data
+  } catch (e) {
+    console.error(e)
+  } finally {
+    loadingServers.value = false
+  }
+}
+
 // Последние посты
 const latestPosts = ref([])
 const loadingPosts = ref(true)
@@ -39,7 +55,10 @@ async function fetchLatestPosts() {
   }
 }
 
-onMounted(fetchLatestPosts)
+onMounted(() => {
+  fetchServers()
+  fetchLatestPosts()
+})
 </script>
 
 <template>
@@ -52,7 +71,7 @@ onMounted(fetchLatestPosts)
 
   <!-- Компактные карточки -->
   <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-    <!-- Трафик — компактный -->
+    <!-- Трафик -->
     <div class="bg-white dark:bg-[#1A1A1A] border-[3px] border-black dark:border-white shadow-brutal p-5">
       <div class="flex justify-between items-baseline mb-3">
         <h2 class="text-xs font-bold uppercase tracking-wider opacity-60">
@@ -71,13 +90,13 @@ onMounted(fetchLatestPosts)
       <div v-if="auth.user?.traffic_limit" class="w-full border-2 border-black dark:border-white h-3">
         <div
           class="h-full transition-all"
-          :class="trafficPercent > 90 ? 'bg-red-500' : trafficPercent > 70 ? 'bg-amber-500' : 'bg-blue-600 dark:bg-orange-500'"
+          :class="trafficPercent > 90 ? 'bg-red-500' : trafficPercent > 70 ? 'bg-amber-500' : 'bg-[#FFD700]'"
           :style="{ width: `${trafficPercent}%` }"
         ></div>
       </div>
     </div>
 
-    <!-- Ключи — компактный -->
+    <!-- Ключи -->
     <div class="bg-white dark:bg-[#1A1A1A] border-[3px] border-black dark:border-white shadow-brutal p-5">
       <h2 class="text-xs font-bold uppercase tracking-wider opacity-60 mb-3">
         Ключи доступа
@@ -92,9 +111,48 @@ onMounted(fetchLatestPosts)
 
       <RouterLink
         :to="{ name: 'clients' }"
-        class="text-xs font-bold uppercase tracking-wide text-[#FF4911] dark:text-[#FF00FF] border-b-2 border-[#FF4911] dark:border-[#FF00FF] hover:opacity-80 transition hover:underline"
+        class="text-xs font-bold uppercase tracking-wide text-[#FF4911] dark:text-[#FF00FF] border-b-2 border-[#FF4911] dark:border-[#FF00FF] hover:opacity-80 transition"
       >
         Управление ключами →
+      </RouterLink>
+    </div>
+  </div>
+
+  <!-- Серверы -->
+  <div class="mb-8">
+    <div class="flex justify-between items-end mb-4">
+      <h2 class="text-xl font-black uppercase tracking-wider">Серверы</h2>
+      <RouterLink
+        :to="{ name: 'servers' }"
+        class="text-xs font-bold uppercase tracking-wide text-[#FF4911] dark:text-[#FF00FF] border-b-2 border-[#FF4911] dark:border-[#FF00FF] hover:opacity-80 transition"
+      >
+        Все серверы →
+      </RouterLink>
+    </div>
+
+    <!-- Loading -->
+    <div v-if="loadingServers" class="text-center py-8 opacity-70 text-sm">
+      Загрузка...
+    </div>
+
+    <!-- Пусто -->
+    <div
+      v-else-if="servers.length === 0"
+      class="bg-white dark:bg-[#1A1A1A] border-[3px] border-black dark:border-white shadow-brutal p-6 text-center"
+    >
+      <p class="text-sm opacity-70">Нет доступных серверов</p>
+    </div>
+
+    <!-- Сетка серверов -->
+    <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <RouterLink
+        v-for="(server, index) in servers"
+        :key="server.id"
+        :to="{ name: 'servers' }"
+        class="animate-list-item block"
+        :style="{ animationDelay: `${Math.min(index, 10) * 50}ms` }"
+      >
+        <ServerMiniCard :server="server" />
       </RouterLink>
     </div>
   </div>
@@ -105,7 +163,7 @@ onMounted(fetchLatestPosts)
       <h2 class="text-xl font-black uppercase tracking-wider">Последние новости</h2>
       <RouterLink
         :to="{ name: 'news' }"
-        class="text-xs font-bold uppercase tracking-wide text-[#FF4911] dark:text-[#FF00FF] border-b-2 border-[#FF4911] dark:border-[#FF00FF] hover:opacity-80 transition hover:underline"
+        class="text-xs font-bold uppercase tracking-wide text-[#FF4911] dark:text-[#FF00FF] border-b-2 border-[#FF4911] dark:border-[#FF00FF] hover:opacity-80 transition"
       >
         Все новости →
       </RouterLink>

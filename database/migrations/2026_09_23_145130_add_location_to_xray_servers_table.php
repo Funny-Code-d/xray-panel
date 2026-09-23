@@ -6,23 +6,19 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::table('xray_servers', function (Blueprint $table) {
-            $table->unsignedInteger('agent_port')->default(8080)->after('api_port');
+            $table->string('country', 2)->nullable()->after('name');
+            $table->string('country_name')->nullable()->after('country');
+            $table->string('city')->nullable()->after('country_name');
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::table('xray_servers', function (Blueprint $table) {
-            $table->dropColumn('agent_port');
+            $table->dropColumn(['country', 'country_name', 'city']);
         });
     }
 };

@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\VpnClient;
+use App\Models\XrayServer;
 use App\Services\XrayService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
@@ -13,51 +14,68 @@ class XraySyncTraffic extends Command
     protected $signature = 'xray:sync-traffic';
     protected $description = 'Синхронизировать трафик из Xray в БД';
 
-    public function handle(XrayService $xray): int
+    public function handle(): int
     {
-        $this->info('Запрос статистики из Xray...');
+        $servers = XrayServer::where('is_active', true)->get();
+
+        if ($servers->isEmpty()) {
+            $this->warn('Нет активных серверов');
+            return self::SUCCESS;
+        }
+
+        $this->info("Серверов для синхронизации: {$servers->count()}");
+
+        foreach ($servers as $server) {
+            $this->syncServer($server);
+        }
+
+        return self::SUCCESS;
+    }
+
+    protected function syncServer(XrayServer $server): void
+    {
+        $this->info("Сервер: {$server->name} ({$server->host})");
+
+        $xray = XrayService::forServer($server);
 
         try {
             $stats = $xray->getAllUsersTraffic();
         } catch (\Exception $e) {
-            $this->error('Ошибка Xray API: ' . $e->getMessage());
-            Log::error('xray:sync-traffic failed', ['error' => $e->getMessage()]);
-            return self::FAILURE;
+            $this->error("  ✗ Xray недоступен: {$e->getMessage()}");
+            Log::error('Xray sync failed', [
+                'server_id' => $server->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            $server->update(['status' => 'offline']);
+            return;
         }
 
-        if (empty($stats)) {
-            $this->info('Статистики нет (никто не подключался)');
-            return self::SUCCESS;
-        }
+        $server->update([
+            'status' => 'online',
+            'last_seen_at' => now(),
+        ]);
 
-        $this->info('Найдено пользователей: ' . count($stats));
+        $this->info('  ✓ Xray online, найдено клиентов: ' . count($stats));
 
         $today = now()->toDateString();
         $processed = 0;
-        $skipped = 0;
 
-        // Обрабатываем пачками, чтобы не грузить память
         VpnClient::query()
+            ->where('xray_server_id', $server->id)
             ->whereNotNull('email')
-            ->chunkById(100, function ($clients) use ($stats, $today, &$processed, &$skipped) {
+            ->chunkById(100, function ($clients) use ($stats, $today, &$processed) {
                 foreach ($clients as $client) {
-                    $email = $client->email;
-
-                    if (!isset($stats[$email])) {
-                        $skipped++;
+                    if (!isset($stats[$client->email])) {
                         continue;
                     }
 
-                    $current = $stats[$email];
-
-                    $this->syncClient($client, $current, $today);
+                    $this->syncClientTraffic($client, $stats[$client->email], $today);
                     $processed++;
                 }
             });
 
-        $this->info("Обработано: {$processed}, пропущено: {$skipped}");
-
-        return self::SUCCESS;
+        $this->info("  Обработано клиентов: {$processed}");
     }
 
     /**

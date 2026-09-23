@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\XrayServer;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Process;
 use RuntimeException;
@@ -10,11 +11,20 @@ class XrayService
 {
     protected string $apiServer;
     protected string $binary;
+    protected ?XrayServer $server;
 
-    public function __construct()
+    public function __construct(?XrayServer $server = null)
     {
-        $this->apiServer = config('services.xray.api_server', '127.0.0.1:10085');
+        $this->server = $server;
+        $this->apiServer = $server
+            ? "{$server->api_host}:{$server->api_port}"
+            : config('services.xray.api_server', '127.0.0.1:10085');
         $this->binary = config('services.xray.binary', 'xray');
+    }
+
+    public static function forServer(XrayServer $server): self
+    {
+        return new self($server);
     }
 
     /**

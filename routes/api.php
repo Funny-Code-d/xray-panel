@@ -11,6 +11,8 @@ use App\Http\Controllers\Api\TagController;
 use App\Http\Controllers\Api\SubscriptionController;
 use App\Http\Controllers\Api\Admin\PostController as AdminPostController;
 use App\Http\Controllers\Api\Admin\TagController as AdminTagController;
+use \App\Http\Controllers\Api\ServerController;
+use App\Http\Controllers\Api\Admin\ServerController as AdminServerController;
 
 /*
 |--------------------------------------------------------------------------
@@ -45,6 +47,7 @@ Route::middleware(['auth:sanctum', 'not_blocked'])->group(function () {
     Route::post('/subscriptions', [SubscriptionController::class, 'store']);
     Route::post('/subscriptions/bulk', [SubscriptionController::class, 'bulkUpdate']);
     Route::delete('/subscriptions/{subscription}', [SubscriptionController::class, 'destroy']);
+    Route::get('/servers', [ServerController::class, 'index']);
 });
 
 /*
@@ -83,5 +86,6 @@ Route::middleware(['auth:sanctum', 'not_blocked', 'approved'])->group(function (
         Route::apiResource('posts', AdminPostController::class);
         Route::apiResource('tags', AdminTagController::class);
         Route::get('/users/{user}/dashboard', [AdminUserController::class, 'dashboard']);
+        Route::apiResource('servers', AdminServerController::class);
     });
 });

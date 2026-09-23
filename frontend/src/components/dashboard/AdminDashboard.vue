@@ -2,11 +2,17 @@
 import { ref, onMounted } from 'vue'
 import api from '@/api/axios'
 import { formatBytes, formatDate } from '@/utils/format'
+import ServerMiniCard from '@/components/server/ServerMiniCard.vue'
 
 const data = ref(null)
 const loading = ref(true)
 const error = ref(null)
 
+// Серверы
+const servers = ref([])
+const loadingServers = ref(true)
+
+// Последние посты
 const latestPosts = ref([])
 const loadingPosts = ref(true)
 
@@ -25,6 +31,17 @@ async function fetchDashboard() {
   }
 }
 
+async function fetchServers() {
+  try {
+    const { data } = await api.get('/servers')
+    servers.value = data
+  } catch (e) {
+    console.error(e)
+  } finally {
+    loadingServers.value = false
+  }
+}
+
 async function fetchLatestPosts() {
   try {
     const { data: res } = await api.get('/posts', { params: { per_page: 3 } })
@@ -38,6 +55,7 @@ async function fetchLatestPosts() {
 
 onMounted(() => {
   fetchDashboard()
+  fetchServers()
   fetchLatestPosts()
 })
 </script>
@@ -56,7 +74,7 @@ onMounted(() => {
   <!-- Error -->
   <div
     v-else-if="error"
-    class="bg-red-100 dark:bg-red-900 border-2 border-red-700 dark:border-red-400 shadow-brutal p-6 text-center"
+    class="bg-red-100 dark:bg-red-900 border-[3px] border-red-700 dark:border-red-400 shadow-brutal p-6 text-center"
   >
     <p class="font-bold">{{ error }}</p>
   </div>
@@ -110,6 +128,48 @@ onMounted(() => {
       </p>
     </div>
 
+    <!-- Серверы -->
+    <div>
+      <div class="flex justify-between items-end mb-4">
+        <h2 class="text-xl font-black uppercase tracking-wider">Серверы</h2>
+        <RouterLink
+          :to="{ name: 'admin-servers' }"
+          class="text-xs font-bold uppercase tracking-wide text-[#FF4911] dark:text-[#FF00FF] border-b-2 border-[#FF4911] dark:border-[#FF00FF] hover:opacity-80 transition"
+        >
+          Управление серверами →
+        </RouterLink>
+      </div>
+
+      <div v-if="loadingServers" class="text-center py-8 opacity-70 text-sm">
+        Загрузка...
+      </div>
+
+      <div
+        v-else-if="servers.length === 0"
+        class="bg-white dark:bg-[#1A1A1A] border-[3px] border-black dark:border-white shadow-brutal p-6 text-center"
+      >
+        <p class="text-sm opacity-70 mb-3">Серверов пока нет</p>
+        <RouterLink
+          :to="{ name: 'admin-servers' }"
+          class="inline-block px-4 py-2 text-xs font-bold uppercase tracking-wide border-2 border-black dark:border-white hover:shadow-brutal-sm transition-all"
+        >
+          Добавить сервер
+        </RouterLink>
+      </div>
+
+      <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <RouterLink
+          v-for="(server, index) in servers"
+          :key="server.id"
+          :to="{ name: 'admin-servers' }"
+          class="animate-list-item block"
+          :style="{ animationDelay: `${Math.min(index, 10) * 50}ms` }"
+        >
+          <ServerMiniCard :server="server" />
+        </RouterLink>
+      </div>
+    </div>
+
     <!-- Два столбца: заявки + последние ключи -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <!-- Последние заявки -->
@@ -118,7 +178,7 @@ onMounted(() => {
           <h2 class="text-sm font-bold uppercase tracking-wider opacity-60">Последние заявки</h2>
           <RouterLink
             :to="{ name: 'admin-applications' }"
-            class="text-xs font-bold uppercase text-[#FF4911] dark:text-[#FF00FF] border-b-2 border-[#FF4911] dark:border-[#FF00FF] hover:opacity-80 transition hover:underline"
+            class="text-xs font-bold uppercase text-[#FF4911] dark:text-[#FF00FF] border-b-2 border-[#FF4911] dark:border-[#FF00FF] hover:opacity-80 transition"
           >
             Все →
           </RouterLink>
@@ -133,7 +193,7 @@ onMounted(() => {
             v-for="user in data.recent_pending"
             :key="user.id"
             :to="{ name: 'admin-user', params: { id: user.id } }"
-            class="block p-3 border-2 border-black/20 dark:border-white/20 hover:bg-slate-50 dark:hover:bg-[#1a0b2e] transition"
+            class="block p-3 border-2 border-black/20 dark:border-white/20 hover:bg-slate-50 dark:hover:bg-[#121212] transition"
           >
             <p class="font-bold text-sm truncate">{{ user.full_name }}</p>
             <p class="text-xs font-mono opacity-60 truncate">{{ user.email }}</p>
@@ -148,7 +208,7 @@ onMounted(() => {
           <h2 class="text-sm font-bold uppercase tracking-wider opacity-60">Последние ключи</h2>
           <RouterLink
             :to="{ name: 'admin-users' }"
-            class="text-xs font-bold uppercase text-[#FF4911] dark:text-[#FF00FF] border-b-2 border-[#FF4911] dark:border-[#FF00FF] hover:opacity-80 transition hover:underline"
+            class="text-xs font-bold uppercase text-[#FF4911] dark:text-[#FF00FF] border-b-2 border-[#FF4911] dark:border-[#FF00FF] hover:opacity-80 transition"
           >
             Все →
           </RouterLink>
@@ -191,18 +251,16 @@ onMounted(() => {
         <h2 class="text-xl font-black uppercase tracking-wider">Последние новости</h2>
         <RouterLink
           :to="{ name: 'admin-posts' }"
-          class="text-xs font-bold uppercase tracking-wide text-[#FF4911] dark:text-[#FF00FF] border-b-2 border-[#FF4911] dark:border-[#FF00FF] hover:opacity-80 transition hover:underline"
+          class="text-xs font-bold uppercase tracking-wide text-[#FF4911] dark:text-[#FF00FF] border-b-2 border-[#FF4911] dark:border-[#FF00FF] hover:opacity-80 transition"
         >
           Управление постами →
         </RouterLink>
       </div>
 
-      <!-- Loading -->
       <div v-if="loadingPosts" class="text-center py-8 opacity-70 text-sm">
         Загрузка...
       </div>
 
-      <!-- Пусто -->
       <div
         v-else-if="latestPosts.length === 0"
         class="bg-white dark:bg-[#1A1A1A] border-[3px] border-black dark:border-white shadow-brutal p-6 text-center"
@@ -216,7 +274,6 @@ onMounted(() => {
         </RouterLink>
       </div>
 
-      <!-- Посты -->
       <div v-else class="space-y-3">
         <RouterLink
           v-for="post in latestPosts"
@@ -226,7 +283,6 @@ onMounted(() => {
         >
           <div class="flex justify-between items-start gap-4">
             <div class="min-w-0 flex-1">
-              <!-- Теги -->
               <div v-if="post.tags?.length" class="flex flex-wrap gap-1.5 mb-2">
                 <span
                   v-for="tag in post.tags"
@@ -238,23 +294,19 @@ onMounted(() => {
                 </span>
               </div>
 
-              <!-- Заголовок -->
               <h3 class="font-bold text-base mb-1">
                 {{ post.title }}
               </h3>
 
-              <!-- Excerpt -->
               <p class="text-xs opacity-70 mb-2 line-clamp-2">
                 {{ post.excerpt }}
               </p>
 
-              <!-- Мета -->
               <div class="text-[10px] opacity-60 uppercase tracking-wider">
                 {{ formatDate(post.published_at) }} · {{ post.reading_time }} мин
               </div>
             </div>
 
-            <!-- Статус -->
             <span
               class="text-xs font-bold uppercase px-2 py-0.5 border-2 shrink-0"
               :class="post.is_published
@@ -269,7 +321,7 @@ onMounted(() => {
         <div class="pt-2">
           <RouterLink
             :to="{ name: 'admin-posts' }"
-            class="inline-block text-xs font-bold uppercase tracking-wide text-[#FF4911] dark:text-[#FF00FF] border-b-2 border-[#FF4911] dark:border-[#FF00FF] hover:opacity-80 transition hover:underline"
+            class="inline-block text-xs font-bold uppercase tracking-wide text-[#FF4911] dark:text-[#FF00FF] border-b-2 border-[#FF4911] dark:border-[#FF00FF] hover:opacity-80 transition"
           >
             Все посты →
           </RouterLink>

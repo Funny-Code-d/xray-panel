@@ -10,6 +10,11 @@ class XrayAgentService
 {
     public function restartXray(XrayServer $server): bool
     {
+
+        if (!$server->agent_port) {
+            Log::warning('Agent port not set for server', ['server_id' => $server->id]);
+            return false;
+        }
         $url = "http://{$server->host}:{$server->agent_port}/restart-xray";
 
         try {
