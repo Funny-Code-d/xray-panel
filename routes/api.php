@@ -82,5 +82,6 @@ Route::middleware(['auth:sanctum', 'not_blocked', 'approved'])->group(function (
         Route::post('/users/{user}/unblock', [AdminUserController::class, 'unblock']);
         Route::apiResource('posts', AdminPostController::class);
         Route::apiResource('tags', AdminTagController::class);
+        Route::get('/users/{user}/dashboard', [AdminUserController::class, 'dashboard']);
     });
 });

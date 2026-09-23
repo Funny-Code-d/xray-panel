@@ -10,6 +10,42 @@ use Illuminate\Http\Request;
 
 class UserController extends Controller
 {
+
+    public function dashboard(User $user): JsonResponse
+    {
+        $user->load('roles');
+
+        $clientsCount = $user->vpnClients()->count();
+
+        return response()->json([
+            'user' => [
+                'id' => $user->id,
+                'full_name' => $user->full_name,
+                'email' => $user->email,
+                'is_admin' => $user->isAdmin(),
+                'approval_status' => $user->approval_status,
+                'is_blocked' => $user->is_blocked,
+            ],
+            'traffic' => [
+                'used' => $user->total_traffic_used,
+                'limit' => $user->traffic_limit,
+                'percent' => $user->traffic_limit
+                    ? min(100, round(($user->total_traffic_used / $user->traffic_limit) * 100))
+                    : 0,
+            ],
+            'clients_count' => $clientsCount,
+            'recent_clients' => $user->vpnClients()
+                ->latest()
+                ->limit(3)
+                ->get()
+                ->map(fn ($c) => [
+                    'id' => $c->id,
+                    'name' => $c->name,
+                    'is_active' => $c->is_active,
+                    'traffic_used' => $c->traffic_used,
+                ]),
+        ]);
+    }
     /**
      * Список пользователей с фильтрами и пагинацией.
      */
