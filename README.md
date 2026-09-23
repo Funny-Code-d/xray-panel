@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="frontend/public/logo-full.jpg" alt="FunnyNodes" width="400" />
+  <img src="frontend/public/logo-full.png" alt="FunnyNodes" width="400" />
 </p>
 
 <h1 align="center">FunnyNodes</h1>
@@ -13,6 +13,14 @@
   <img src="https://img.shields.io/badge/Laravel-12-FF2D20?style=for-the-badge&logo=laravel&logoColor=white" alt="Laravel 12">
   <img src="https://img.shields.io/badge/Vue-3-4FC08D?style=for-the-badge&logo=vue.js&logoColor=white" alt="Vue 3">
   <img src="https://img.shields.io/badge/PHP-8.3-777BB4?style=for-the-badge&logo=php&logoColor=white" alt="PHP 8.3">
+</p>
+
+<p align="center">
+  🌐 <a href="https://funny-code.space"><b>funny-code.space</b></a>
+</p>
+
+<p align="center">
+  Панель работает в продакшене. Регистрация открыта — после подтверждения администратором вы получите доступ.
 </p>
 
 ---
@@ -74,6 +82,7 @@
 - Чтение статистики через `xray api statsquery`
 - Синхронизация трафика по email (`xray:sync-traffic`)
 - Таблица `traffic_stats` — дневная разбивка трафика
+- Развёрнуты узлы во Франции и Нидерландах
 
 **Лента новостей:**
 - Посты с HTML-контентом
@@ -88,7 +97,9 @@
 - Список заявок на одобрение
 - Список всех пользователей с фильтрами и поиском
 - Карточка пользователя со всей информацией
+- Предпросмотр дашборда пользователя (read-only)
 - CRUD постов и тегов
+- CRUD серверов + кнопка «Показать токен»
 - Смена ролей и лимита трафика
 - Одобрение / отклонение заявок
 - Блокировка / разблокировка
@@ -103,12 +114,21 @@
 - Анимации переходов и появления элементов
 - Адаптив под мобильные
 
+**Безопасность:**
+- SSH-ключи (Ed25519) на всех серверах
+- Вход по паролю **отключён** на всех серверах
+- `PermitRootLogin prohibit-password` — root только по ключу
+- UFW на всех серверах: только нужные порты
+- Агент и API Xray — **только для IP панели**
+- Sanctum-токены для API
+- `ForceJsonResponse` middleware
+
 **Инфраструктура:**
 - Деплой на VPS (Nginx + PHP-FPM + MariaDB)
 - HTTPS через Let's Encrypt
 - GitHub Actions CI/CD с self-hosted runner
 - Docker для Xray и агента
-- Cron для синхронизации трафика и reload Xray
+- Cron для синхронизации трафика
 
 ### 🚧 В планах
 
@@ -117,24 +137,18 @@
 - [ ] Автодеактивация ключей при превышении лимита трафика
 - [ ] Сброс лимита трафика по расписанию
 - [ ] Учёт онлайн-сессий и аптайма (`GetStatsOnline`)
-- [ ] Развёртывание Xray на отдельном VPS на порту 443
+- [ ] Node Agent — heartbeat и метрики с каждого узла
 
 **Коммуникация:**
 - [ ] Рассылка при публикации постов (`NewPostMail` + Job + очередь)
 - [ ] Уведомления в Telegram
+- [ ] Telegram-бот для дублирования новостей в канал
 - [ ] Уведомления о событиях (заявка одобрена, аккаунт заблокирован, трафик на исходе)
-- [ ] Telegram-бот для управления аккаунтом
-
-**Инфраструктура:**
-- [ ] Блок «Серверы» со стойкой и LED-индикаторами
-- [ ] Выбор сервера при создании ключа
-- [ ] Node Agent — heartbeat и метрики с каждого узла
-- [ ] Балансировщик нагрузки
 
 **Безопасность:**
 - [ ] Двухфакторная аутентификация (2FA)
 - [ ] Логи действий администраторов
-- [ ] Включить UFW на VPS
+- [ ] fail2ban — защита от SSH brute-force
 - [ ] Rate limiting на чувствительные endpoint'ы
 
 **UI/UX:**
@@ -170,6 +184,7 @@
 - **Let's Encrypt** — SSL
 - **GitHub Actions** — CI/CD
 - **Cron** — синхронизация
+- **UFW** — firewall
 
 ---
 
@@ -177,36 +192,90 @@
 
 ```
 ┌─────────────────────────────────────────┐
-│            Laravel Panel                │
+│         Панель (Польша)                 │
 │  ┌───────────────────────────────────┐  │
-│  │  XrayConfigBuilder                │  │
-│  │  → генерирует config.json         │  │
-│  └───────────────────────────────────┘  │
-│  ┌───────────────────────────────────┐  │
-│  │  XrayService                      │  │
-│  │  → читает статистику по email     │  │
-│  └───────────────────────────────────┘  │
-│  ┌───────────────────────────────────┐  │
-│  │  GET /api/xray/config             │  │
-│  │  → отдаёт конфиг серверу          │  │
+│  │  Laravel + Nginx + MariaDB        │  │
+│  │  - XrayConfigBuilder              │  │
+│  │  - XrayService                    │  │
+│  │  - GET /api/xray/config           │  │
 │  └───────────────────────────────────┘  │
 └─────────────────────────────────────────┘
-                    ↑
+                    │
         HTTP (Bearer token)
                     │
-┌─────────────────────────────────────────┐
-│              Xray Node                  │
-│  ┌───────────────────────────────────┐  │
-│  │  Docker: Xray + Agent             │  │
-│  │  → забирает конфиг при старте     │  │
-│  │  → hot-reload через SIGHUP        │  │
-│  └───────────────────────────────────┘  │
-│  ┌───────────────────────────────────┐  │
-│  │  Xray (VLESS + Reality)           │  │
-│  │  → API 127.0.0.1:10085            │  │
-│  └───────────────────────────────────┘  │
-└─────────────────────────────────────────┘
+        ┌───────────┴───────────┐
+        ↓                       ↓
+┌───────────────┐       ┌───────────────┐
+│ Франция       │       │ Нидерланды    │
+│ Xray :443     │       │ Xray :443     │
+│ Агент :8080   │       │ Агент :8080   │
+│ API :10085    │       │ API :10085    │
+└───────────────┘       └───────────────┘
 ```
+
+---
+
+## Безопасность
+
+### SSH
+
+**На всех серверах:**
+- Вход по паролю **отключён** (`PasswordAuthentication no`)
+- Root **только по ключу** (`PermitRootLogin prohibit-password`)
+- Ключ Ed25519 с passphrase
+- `KbdInteractiveAuthentication no` — обязательно, иначе PAM пустит по паролю
+
+**Конфиг `/etc/ssh/sshd_config.d/01-hardening.conf`:**
+
+```
+PasswordAuthentication no
+KbdInteractiveAuthentication no
+PermitRootLogin prohibit-password
+X11Forwarding no
+```
+
+⚠️ **Важно:** если есть `/etc/ssh/sshd_config.d/50-cloud-init.conf` с `PasswordAuthentication yes` — **удалить**, иначе он перебивает `01-`.
+
+### UFW
+
+**Панель (Польша):**
+
+```bash
+sudo ufw default deny incoming
+sudo ufw default allow outgoing
+sudo ufw allow 22/tcp
+sudo ufw allow 80/tcp
+sudo ufw allow 443/tcp
+sudo ufw enable
+```
+
+**VPN-узлы (Франция, Нидерланды):**
+
+```bash
+sudo ufw default deny incoming
+sudo ufw default allow outgoing
+sudo ufw allow 22/tcp
+sudo ufw allow 443/tcp
+sudo ufw allow 443/udp
+sudo ufw allow from 82.40.38.102 to any port 8080
+sudo ufw allow from 82.40.38.102 to any port 10085
+sudo ufw enable
+```
+
+**Что закрыто:**
+- 8000 — Laravel dev
+- 3306 — MySQL
+- 8443 — тестовый Xray (если был)
+- Всё остальное — deny by default
+
+### API-токены
+
+- У каждого Xray-сервера свой `api_token` (64 hex-символа)
+- Токен используется для:
+  - `GET /api/xray/config` — получение конфига
+  - `POST /agent:8080/restart-xray` — hot-reload
+- Токен **не попадает** в публичный `/api/servers`
+- Токен доступен только админам через `/admin/servers` → «Показать токен»
 
 ---
 
@@ -251,6 +320,7 @@
 | POST | `/api/logout` | Выход |
 | GET | `/api/me` | Текущий пользователь |
 | POST | `/api/change-password` | Смена пароля |
+| GET | `/api/servers` | Список серверов |
 | GET | `/api/subscriptions` | Список подписок |
 | POST | `/api/subscriptions` | Создать подписку |
 | POST | `/api/subscriptions/bulk` | Массовое обновление |
@@ -274,11 +344,17 @@
 | GET | `/api/admin/dashboard` | Метрики |
 | GET | `/api/admin/users` | Список пользователей |
 | GET | `/api/admin/users/{id}` | Карточка |
+| GET | `/api/admin/users/{id}/dashboard` | Предпросмотр дашборда |
 | PATCH | `/api/admin/users/{id}` | Обновить (роли, лимит) |
 | POST | `/api/admin/users/{id}/approve` | Одобрить |
 | POST | `/api/admin/users/{id}/reject` | Отклонить |
 | POST | `/api/admin/users/{id}/block` | Заблокировать |
 | POST | `/api/admin/users/{id}/unblock` | Разблокировать |
+| GET | `/api/admin/servers` | Список серверов |
+| POST | `/api/admin/servers` | Создать сервер |
+| GET | `/api/admin/servers/{id}` | Карточка сервера |
+| PATCH | `/api/admin/servers/{id}` | Обновить |
+| DELETE | `/api/admin/servers/{id}` | Удалить |
 | GET | `/api/admin/posts` | Все посты |
 | POST | `/api/admin/posts` | Создать пост |
 | PATCH | `/api/admin/posts/{id}` | Обновить |
@@ -295,7 +371,7 @@
 ### VLESS + Reality
 
 ```
-vless://<UUID>@<HOST>:<PORT>?type=tcp&security=reality&flow=xtls-rprx-vision&sni=dl.google.com&fp=chrome&pbk=<PUBLIC_KEY>&sid=<SHORT_ID>&spx=%2F#Name
+vless://<UUID>@<HOST>:<PORT>?type=tcp&security=reality&flow=xtls-rprx-vision&sni=dl.google.com&fp=firefox&pbk=<PUBLIC_KEY>&sid=<SHORT_ID>&spx=%2F#Name
 ```
 
 Совместим с **OneXray**, **v2rayTun**, **v2rayNG**, **WINGS**.
@@ -364,26 +440,7 @@ MAIL_FROM_NAME="${APP_NAME}"
 # Xray API
 XRAY_API_SERVER=127.0.0.1:10085
 XRAY_BINARY=/usr/local/bin/xray
-
-# Xray сервер (VLESS + Reality)
-XRAY_VLESS_HOST=your.server.ip
-XRAY_VLESS_PORT=443
-XRAY_VLESS_API_PORT=10085
-XRAY_VLESS_INBOUND_TAG=vless-inbound
-XRAY_VLESS_FLOW=xtls-rprx-vision
-
-XRAY_VLESS_REALITY_DEST=dl.google.com:443
-XRAY_VLESS_REALITY_SNI=dl.google.com
-XRAY_VLESS_REALITY_PRIVATE_KEY=your_private_key
-XRAY_VLESS_REALITY_PUBLIC_KEY=your_public_key
-XRAY_VLESS_REALITY_SHORT_ID=0123456789abcdef
-XRAY_VLESS_FINGERPRINT=chrome
 ```
-
-**Важно:**
-- `MAIL_PASSWORD` — пароль приложения Google (не обычный пароль).
-- `XRAY_VLESS_HOST` — IP или домен VPN-сервера.
-- `XRAY_VLESS_REALITY_PUBLIC_KEY` — сгенерировать: `xray x25519 -i <privateKey>`
 
 **4. Миграции и сидеры:**
 
@@ -395,7 +452,6 @@ php artisan migrate --seed
 После этого в БД:
 - Роли `admin`, `user`
 - Админ `admin@vpn.local` / `password`
-- Xray-сервер с API-токеном (выведется в консоль — сохрани)
 - Теги: `updates`, `incidents`, `maintenance`, `news`, `guides`
 
 ⚠️ **Смени пароль администратора после первого входа.**
@@ -412,123 +468,57 @@ npm run dev
 
 Смотри [docs/DEPLOY.md](docs/DEPLOY.md) — там пошаговая инструкция.
 
-Или кратко:
+### Развёртывание VPN-узла
 
 **1. Подготовка сервера:**
 
 ```bash
 sudo apt update && sudo apt upgrade -y
-sudo apt install -y nginx mariadb-server \
-    php8.3 php8.3-fpm php8.3-mysql php8.3-curl php8.3-json \
-    php8.3-xml php8.3-mbstring php8.3-zip php8.3-gd php8.3-bcmath \
-    php8.3-cli unzip git curl
-
-curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
-sudo apt install -y nodejs
-
-curl -sS https://getcomposer.org/installer | php
-sudo mv composer.phar /usr/local/bin/composer
+sudo apt install -y docker.io docker-compose-plugin git curl ufw
 ```
 
-**2. Клонирование и установка:**
+**2. Клонирование:**
 
 ```bash
-cd /var/www
-sudo git clone https://github.com/Funny-Code-d/xray-panel.git vpn-panel
-sudo chown -R www-data:www-data /var/www/vpn-panel
-cd /var/www/vpn-panel
-sudo -u www-data composer install --no-dev --optimize-autoloader
+git clone https://github.com/Funny-Code-d/xray-panel.git
+cd xray-panel
 ```
 
-**3. База данных:**
+**3. Настройка `.env`:**
 
 ```bash
-sudo mysql
-
-CREATE DATABASE vpn_panel CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-CREATE USER 'vpn_user'@'localhost' IDENTIFIED BY 'strong_password';
-GRANT ALL PRIVILEGES ON vpn_panel.* TO 'vpn_user'@'localhost';
-FLUSH PRIVILEGES;
-EXIT;
+nano docker/xray/.env
 ```
-
-**4. Production `.env`:**
 
 ```env
-APP_ENV=production
-APP_DEBUG=false
-APP_URL=https://your-domain.com
-FRONTEND_URL=https://your-domain.com
+XRAY_PANEL_URL=https://funny-code.space
+XRAY_API_TOKEN=<токен-из-панели>
 ```
+
+**4. Запуск:**
 
 ```bash
-sudo -u www-data php artisan key:generate
-sudo -u www-data php artisan migrate --seed
+cd docker/xray
+docker compose up -d --build
+docker logs -f xray
 ```
 
-**5. Сборка фронта:**
+**5. Firewall:**
 
 ```bash
-cd frontend
-sudo -u www-data npm install
-sudo -u www-data npm run build
-```
-
-**6. Nginx:**
-
-```nginx
-server {
-    listen 80;
-    server_name your-domain.com;
-
-    root /var/www/vpn-panel/frontend/dist;
-    index index.html;
-
-    location /api/ {
-        root /var/www/vpn-panel/public;
-        try_files $uri $uri/ /index.php?$query_string;
-    }
-
-    location ~ \.php$ {
-        root /var/www/vpn-panel/public;
-        include snippets/fastcgi-php.conf;
-        fastcgi_pass unix:/var/run/php/php8.3-fpm.sock;
-        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
-        include fastcgi_params;
-    }
-
-    location / {
-        try_files $uri $uri/ /index.html;
-    }
-}
-```
-
-**7. SSL:**
-
-```bash
-sudo apt install -y certbot python3-certbot-nginx
-sudo certbot --nginx -d your-domain.com
-```
-
-**8. Cron:**
-
-```bash
-sudo crontab -e -u www-data
-```
-
-```
-* * * * * cd /var/www/vpn-panel && php artisan schedule:run >> /dev/null 2>&1
+sudo ufw default deny incoming
+sudo ufw default allow outgoing
+sudo ufw allow 22/tcp
+sudo ufw allow 443/tcp
+sudo ufw allow 443/udp
+sudo ufw allow from <IP-панели> to any port 8080
+sudo ufw allow from <IP-панели> to any port 10085
+sudo ufw enable
 ```
 
 ### CI/CD через GitHub Actions
 
-Проект использует **self-hosted runner** на VPS. При пуше в `main` запускается workflow `.github/workflows/deploy.yml`.
-
-**Настройка runner:**
-
-1. GitHub → Settings → Actions → Runners → New self-hosted runner
-2. Следуй инструкциям (скачать, зарегистрировать, запустить)
-3. Установи как systemd-сервис
+Проект использует **self-hosted runner** на VPS с панелью. При пуше в `main` запускается workflow `.github/workflows/deploy.yml`.
 
 **Workflow:**
 
@@ -559,30 +549,10 @@ php artisan tinker                   # REPL
 ### Работа с Xray в Docker
 
 ```bash
-cd /var/www/vpn-panel
+cd docker/xray
 docker compose up -d --build    # Запуск
 docker logs -f xray             # Логи
 docker restart xray             # Перезапуск
-```
-
-### Переменные окружения для Xray
-
-```env
-XRAY_API_SERVER=127.0.0.1:10085
-XRAY_BINARY=/usr/local/bin/xray
-
-XRAY_VLESS_HOST=your.server.ip
-XRAY_VLESS_PORT=443
-XRAY_VLESS_API_PORT=10085
-XRAY_VLESS_INBOUND_TAG=vless-inbound
-XRAY_VLESS_FLOW=xtls-rprx-vision
-
-XRAY_VLESS_REALITY_DEST=dl.google.com:443
-XRAY_VLESS_REALITY_SNI=dl.google.com
-XRAY_VLESS_REALITY_PRIVATE_KEY=...
-XRAY_VLESS_REALITY_PUBLIC_KEY=...
-XRAY_VLESS_REALITY_SHORT_ID=...
-XRAY_VLESS_FINGERPRINT=chrome
 ```
 
 ---
