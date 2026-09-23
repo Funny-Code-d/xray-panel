@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Log;
 class XraySyncTraffic extends Command
 {
     protected $signature = 'xray:sync-traffic';
-    protected $description = 'Синхронизировать трафик из Xray в БД';
+    protected $description = 'Синхронизировать трафик из Xray в БД по всем серверам';
 
     public function handle(): int
     {
@@ -51,6 +51,7 @@ class XraySyncTraffic extends Command
             return;
         }
 
+        // Успех — сервер online
         $server->update([
             'status' => 'online',
             'last_seen_at' => now(),
@@ -78,44 +79,35 @@ class XraySyncTraffic extends Command
         $this->info("  Обработано клиентов: {$processed}");
     }
 
-    /**
-     * Синхронизировать одного клиента.
-     */
-    protected function syncClient(VpnClient $client, array $current, string $today): void
+    protected function syncClientTraffic(VpnClient $client, array $current, string $today): void
     {
         $currentUpload = $current['uplink'];
         $currentDownlink = $current['downlink'];
 
-        // Считаем дельту
         $deltaUpload = $currentUpload - $client->xray_last_upload;
         $deltaDownlink = $currentDownlink - $client->xray_last_downlink;
 
-        // Если Xray перезапускался — счётчики обнулились
-        // В этом случае текущее значение меньше предыдущего, берём текущее как дельту
-        if ($deltaUpload < 0) {
-            $deltaUpload = $currentUpload;
-        }
-        if ($deltaDownlink < 0) {
-            $deltaDownlink = $currentDownlink;
-        }
+        // Защита от перезапуска Xray (счётчики обнулились)
+        if ($deltaUpload < 0) $deltaUpload = $currentUpload;
+        if ($deltaDownlink < 0) $deltaDownlink = $currentDownlink;
 
         $deltaTotal = $deltaUpload + $deltaDownlink;
 
+        if ($deltaTotal === 0) {
+            return;
+        }
+
         DB::transaction(function () use ($client, $current, $today, $deltaUpload, $deltaDownlink, $deltaTotal) {
-            // 1. Обновляем traffic_used у ключа (накопительное)
             $client->increment('traffic_used', $deltaTotal);
 
-            // 2. Сохраняем текущее значение как "предыдущее" для следующего раза
             $client->update([
                 'xray_last_upload' => $current['uplink'],
                 'xray_last_downlink' => $current['downlink'],
                 'last_synced_at' => now(),
             ]);
 
-            // 3. Обновляем traffic_used у пользователя (денормализация)
             $client->user()->increment('traffic_used', $deltaTotal);
 
-            // 4. Пишем/обновляем дневную статистику
             $stat = \App\Models\TrafficStat::firstOrNew([
                 'vpn_client_id' => $client->id,
                 'period_start' => $today,
