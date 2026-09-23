@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="frontend/public/logo-full.png" alt="FunnyNodes" width="400" />
+  <img src="frontend/public/logo-full.jpg" alt="FunnyNodes" width="400" />
 </p>
 
 <h1 align="center">FunnyNodes</h1>
