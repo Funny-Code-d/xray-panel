@@ -1,11 +1,27 @@
 <script setup>
 import { watch } from 'vue'
 
+// const props = defineProps({
+//   modelValue: Boolean,
+//   title: String,
+// })
+const emit = defineEmits(['update:modelValue'])
+
 const props = defineProps({
   modelValue: Boolean,
   title: String,
+  size: {
+    type: String,
+    default: 'md',
+  },
 })
-const emit = defineEmits(['update:modelValue'])
+
+const sizeClasses = {
+  sm: 'max-w-sm',
+  md: 'max-w-md',
+  lg: 'max-w-lg',
+  xl: 'max-w-2xl',
+}
 
 function close() {
   emit('update:modelValue', false)
@@ -35,7 +51,7 @@ function onKey(e) {
         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 animate-overlay"
         @click.self="close"
       >
-        <div class="w-full max-w-md bg-white dark:bg-[#1A1A1A] border-[3px] border-black dark:border-white shadow-brutal-lg animate-modal flex flex-col max-h-[90vh]">
+        <div class="w-full max-w-md bg-white dark:bg-[#1A1A1A] border-[3px] border-black dark:border-white shadow-brutal-lg animate-modal flex flex-col max-h-[90vh] sizeClasses[props.size]]">
           <!-- Заголовок (не скроллится) -->
           <div class="flex justify-between items-center px-6 py-4 border-b-2 border-black dark:border-white shrink-0">
             <h2 class="text-lg font-black uppercase tracking-wider">{{ title }}</h2>

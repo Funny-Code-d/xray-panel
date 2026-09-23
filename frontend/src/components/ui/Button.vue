@@ -13,10 +13,23 @@ defineProps({
 })
 
 const variants = {
+  // Жёлтый — главное действие (Сохранить, Создать, Войти)
   primary: 'bg-[#FFD700] text-black border-2 border-black dark:border-white hover:shadow-brutal-hover shadow-brutal font-heading font-bold uppercase',
-  secondary: 'bg-[#FF4911] dark:bg-[#FF00FF] text-white border-2 border-black dark:border-white hover:shadow-brutal-hover shadow-brutal font-heading font-bold uppercase',
-  danger: 'bg-red-500 text-white border-2 border-black dark:border-white hover:shadow-brutal-hover shadow-brutal',
-  ghost: 'bg-transparent text-black dark:text-white border-2 border-transparent hover:border-black dark:hover:border-white',
+
+  // Белый — нейтральное действие (Редактировать, Отмена, Закрыть)
+  secondary: 'bg-white dark:bg-[#1A1A1A] text-black dark:text-white border-2 border-black dark:border-white hover:shadow-brutal-hover shadow-brutal font-heading font-bold uppercase',
+
+  // Оранжевый — инфо-действие (Посмотреть дашборд, Посмотреть)
+  info: 'bg-[#00F0FF] text-black border-2 border-black dark:border-white hover:shadow-brutal-hover shadow-brutal font-heading font-bold uppercase',
+
+  // Зелёный — позитивное действие (Одобрить, Разблокировать)
+  success: 'bg-green-500 text-white border-2 border-black dark:border-white hover:shadow-brutal-hover shadow-brutal font-heading font-bold uppercase',
+
+  // Красный — опасное действие (Удалить, Заблокировать, Отклонить)
+  danger: 'bg-red-500 text-white border-2 border-black dark:border-white hover:shadow-brutal-hover shadow-brutal font-heading font-bold uppercase',
+
+  // Прозрачный — второстепенное (Сбросить)
+  ghost: 'bg-transparent text-black dark:text-white border-2 border-transparent hover:border-black dark:hover:border-white font-heading font-bold uppercase',
 }
 
 const sizes = {

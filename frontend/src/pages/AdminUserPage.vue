@@ -8,6 +8,10 @@ import BlockModal from '@/components/admin/BlockModal.vue'
 import EditUserModal from '@/components/admin/EditUserModal.vue'
 import api from '@/api/axios'
 import { formatBytes, formatDate, formatDateTime } from '@/utils/format'
+import UserDashboardPreview from '@/components/admin/UserDashboardPreview.vue'
+
+
+const showDashboard = ref(false)
 
 const route = useRoute()
 const router = useRouter()
@@ -188,7 +192,7 @@ function statusBadge(status) {
           <div class="flex gap-2 flex-wrap">
             <Button
               v-if="!user.is_blocked && user.approval_status !== 'approved'"
-              variant="primary"
+              variant="success"
               size="sm"
               :disabled="processing"
               @click="approve"
@@ -227,12 +231,21 @@ function statusBadge(status) {
 
             <Button
               v-else
-              variant="primary"
+              variant="success"
               size="sm"
               :disabled="processing"
               @click="handleUnblock"
             >
               Разблокировать
+            </Button>
+
+            <Button
+              variant="info"
+              size="sm"
+              :disabled="processing"
+              @click="showDashboard = true"
+            >
+              Посмотреть дашборд
             </Button>
           </div>
         </div>
@@ -393,5 +406,7 @@ function statusBadge(status) {
       :loading="processing"
       @save="handleSave"
     />
+
+    <UserDashboardPreview v-model="showDashboard" :user-id="user?.id" />
   </AppLayout>
 </template>
