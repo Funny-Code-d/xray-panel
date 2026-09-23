@@ -6,6 +6,7 @@ const route = useRoute()
 const tabs = [
   { name: 'admin-applications', label: 'Заявки' },
   { name: 'admin-users', label: 'Пользователи' },
+  { name: 'admin-servers', label: 'Серверы' },
   { name: 'admin-posts', label: 'Посты' },
   { name: 'admin-tags', label: 'Теги' },
 ]

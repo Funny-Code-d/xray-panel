@@ -177,6 +177,7 @@ async function handleDelete() {
             <tr>
               <th class="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Имя</th>
               <th class="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Email</th>
+              <th class="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Сервер</th>
               <th class="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Статус</th>
               <th class="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Трафик</th>
               <th class="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Срок</th>
@@ -192,6 +193,18 @@ async function handleDelete() {
             >
               <td class="px-4 py-3 font-bold">{{ client.name }}</td>
               <td class="px-4 py-3 text-sm font-mono opacity-70">{{ client.email }}</td>
+              <!-- Сервер -->
+              <td class="px-4 py-3">
+                <span
+                  v-if="client.xray_server"
+                  class="inline-flex items-center gap-1.5 px-2 py-0.5 text-xs font-bold uppercase tracking-wider border-2 border-black dark:border-white"
+                  :title="`${client.xray_server.host}:${client.xray_server.port}`"
+                >
+                  <span>{{ client.xray_server.country_flag }}</span>
+                  <span class="truncate max-w-[100px]">{{ client.xray_server.name }}</span>
+                </span>
+                <span v-else class="text-xs opacity-50">—</span>
+              </td>
               <td class="px-4 py-3">
                 <ClientStatus :client="client" />
               </td>
@@ -245,6 +258,10 @@ async function handleDelete() {
             <div class="min-w-0">
               <p class="font-bold text-lg truncate">{{ client.name }}</p>
               <p class="text-xs font-mono opacity-70 truncate">{{ client.email }}</p>
+              <div v-if="client.xray_server" class="flex items-center gap-1.5 mt-1 text-xs">
+                <span>{{ client.xray_server.country_flag }}</span>
+                <span class="font-bold uppercase tracking-wider truncate">{{ client.xray_server.name }}</span>
+              </div>
             </div>
             <ClientStatus :client="client" class="ml-2 shrink-0" />
           </div>

@@ -53,21 +53,23 @@ class ClientController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:100'],
             'expires_at' => ['nullable', 'date', 'after:now'],
-            'user_id' => [
-                'nullable',
-                'integer',
-                'exists:users,id',
-            ],
+            'user_id' => ['nullable', 'integer', 'exists:users,id'],
+            'xray_server_id' => ['nullable', 'integer', 'exists:xray_servers,id'],
         ]);
 
         $targetUserId = $user->isAdmin() && !empty($validated['user_id'])
             ? $validated['user_id']
             : $user->id;
 
-        // Берём первый активный Xray-сервер
-        $server = XrayServer::where('is_active', true)->first();
+        // Выбор сервера
+        if (!empty($validated['xray_server_id'])) {
+            $server = XrayServer::where('is_active', true)
+                ->find($validated['xray_server_id']);
+        } else {
+            $server = XrayServer::where('is_active', true)->first();
+        }
 
-        if (! $server) {
+        if (!$server) {
             return response()->json([
                 'message' => 'Нет доступных Xray-серверов.',
             ], 503);
@@ -75,18 +77,16 @@ class ClientController extends Controller
 
         $client = VpnClient::create([
             'user_id' => $targetUserId,
-            'xray_server_id' => $server->id,  // ← добавлено: привязка к серверу
+            'xray_server_id' => $server->id,
             'name' => $validated['name'],
             'expires_at' => $validated['expires_at'] ?? null,
         ]);
 
         $client->refresh();
-        $client->load([
-            'user:id,first_name,last_name,email',
-            'xrayServer',  // ← добавлено
-        ]);
+        $client->load(['user:id,first_name,last_name,email', 'xrayServer']);
 
-        app(XrayAgentService::class)->restartXray($client->xrayServer);
+        // Hot-reload Xray через агента
+        app(XrayAgentService::class)->restartXray($server);
 
         return response()->json($client, 201);
     }
@@ -138,20 +138,6 @@ class ClientController extends Controller
     public function destroy(Request $request, VpnClient $client): JsonResponse
     {
         $this->authorizeAccess($request, $client);
-
-        if ($client->xrayServer) {
-            try {
-                app(XrayService::class)->removeUser(
-                    $client->xrayServer->inbound_tag,
-                    $client->email
-                );
-            } catch (\Exception $e) {
-                Log::warning('Не удалось удалить клиента из Xray', [
-                    'client_id' => $client->id,
-                    'error' => $e->getMessage(),
-                ]);
-            }
-        }
 
         $client->load('xrayServer');
 

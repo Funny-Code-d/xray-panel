@@ -106,6 +106,19 @@ const routes = [
     component: () => import('@/pages/admin/AdminTagsPage.vue'),
     meta: { requiresAuth: true, requiresAdmin: true },
   },
+
+  {
+    path: '/servers',
+    name: 'servers',
+    component: () => import('@/pages/ServersPage.vue'),
+    meta: { requiresAuth: true, requiresApproved: true },
+  },
+  {
+    path: '/admin/servers',
+    name: 'admin-servers',
+    component: () => import('@/pages/admin/AdminServersPage.vue'),
+    meta: { requiresAuth: true, requiresAdmin: true },
+  },
 ]
 
 const router = createRouter({
