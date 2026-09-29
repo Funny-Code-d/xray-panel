@@ -9,7 +9,7 @@ const githubUrl = 'https://github.com/Funny-Code-d/xray-panel'
 
 function goBack() {
   if (auth.isAuthenticated) {
-    router.push({ name: 'dashboard' })
+    router.push({ name: 'home' })
   } else {
     router.push({ name: 'login' })
   }

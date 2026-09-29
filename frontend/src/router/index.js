@@ -34,9 +34,9 @@ const routes = [
   },
   {
     path: '/',
-    name: 'dashboard',
-    component: () => import('@/pages/DashboardPage.vue'),
-    meta: { requiresAuth: true },
+    name: 'home',
+    component: () => import('@/pages/HomePage.vue'),
+    // без meta.requiresAuth — доступно всем
   },
   {
     path: '/clients',
@@ -91,22 +91,18 @@ const routes = [
     component: () => import('@/pages/SubscriptionsPage.vue'),
     meta: { requiresAuth: true, requiresApproved: true },
   },
-
-  // Админские
   {
     path: '/admin/posts',
     name: 'admin-posts',
     component: () => import('@/pages/admin/AdminPostsPage.vue'),
     meta: { requiresAuth: true, requiresAdmin: true },
   },
-
   {
     path: '/admin/tags',
     name: 'admin-tags',
     component: () => import('@/pages/admin/AdminTagsPage.vue'),
     meta: { requiresAuth: true, requiresAdmin: true },
   },
-
   {
     path: '/servers',
     name: 'servers',
@@ -129,6 +125,7 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   const auth = useAuthStore()
 
+  // Не авторизован, но роут требует auth → на логин
   if (to.meta.requiresAuth && !auth.isAuthenticated) {
     return next({ name: 'login' })
   }
@@ -138,15 +135,17 @@ router.beforeEach((to, from, next) => {
     return next({ name: 'blocked' })
   }
 
-  // Разблокированный, но идёт на /blocked → на dashboard
+  // Разблокированный, но идёт на /blocked → на home
   if (auth.isAuthenticated && !auth.user?.is_blocked && to.name === 'blocked') {
-    return next({ name: 'dashboard' })
+    return next({ name: 'home' })
   }
 
+  // Требуется админ, но не админ → на home
   if (to.meta.requiresAdmin && !auth.isAdmin) {
-    return next({ name: 'dashboard' })
+    return next({ name: 'home' })
   }
 
+  // Авторизован, но не одобрен (и не админ, и не заблокирован) → только /pending
   if (auth.isAuthenticated && !auth.isApproved && !auth.isAdmin && !auth.user?.is_blocked) {
     if (to.name !== 'pending') {
       return next({ name: 'pending' })
@@ -154,12 +153,14 @@ router.beforeEach((to, from, next) => {
     return next()
   }
 
+  // Одобрен (или админ), но идёт на /pending → на home
   if (auth.isAuthenticated && (auth.isApproved || auth.isAdmin) && to.name === 'pending' && !auth.user?.is_blocked) {
-    return next({ name: 'dashboard' })
+    return next({ name: 'home' })
   }
 
+  // Гостевой роут, но авторизован → на home
   if (to.meta.guest && auth.isAuthenticated) {
-    return next({ name: 'dashboard' })
+    return next({ name: 'home' })
   }
 
   next()

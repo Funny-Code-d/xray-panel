@@ -37,7 +37,7 @@ async function handleSubmit() {
     <div class="w-full max-w-md">
       <!-- Заголовок -->
       <div class="text-center mb-8">
-        <div class="text-center mb-8">
+        <RouterLink to="/" class="block text-center mb-8 hover:opacity-80 transition-opacity">
           <img
             src="/logo-icon.svg"
             alt="FunnyNodes"
@@ -45,7 +45,7 @@ async function handleSubmit() {
           />
           <h1 class="text-3xl font-black uppercase tracking-wider">FunnyNodes</h1>
           <p class="mt-2 text-sm opacity-70">Восстановление пароля</p>
-        </div>
+        </RouterLink>
         
       </div>
 
@@ -97,7 +97,8 @@ async function handleSubmit() {
           </p>
         </form>
       </div>
+      <AuthFooter />
     </div>
-    <AuthFooter />
+    
   </div>
 </template>
