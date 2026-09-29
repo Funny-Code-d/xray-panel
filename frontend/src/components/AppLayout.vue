@@ -12,7 +12,7 @@ const mobileMenuOpen = ref(false)
 
 async function handleLogout() {
   await auth.logout()
-  router.push({ name: 'login' })
+  router.push({ name: 'home' })
 }
 
 function closeMobileMenu() {
@@ -61,7 +61,7 @@ function closeMobileMenu() {
             </button>
 
             <RouterLink
-              :to="{ name: 'dashboard' }"
+              :to="{ name: 'home' }"
               class="flex items-center gap-2 px-3 h-10 border-2 border-black dark:border-white bg-[#FFD700] hover:shadow-brutal-sm transition-all"
               @click="closeMobileMenu"
             >
@@ -123,7 +123,7 @@ function closeMobileMenu() {
             </div>
 
             <RouterLink
-              :to="{ name: 'dashboard' }"
+              :to="{ name: 'home' }"
               class="block px-3 py-2 text-sm font-bold uppercase tracking-wide border-l-4 border-[#FFD700] hover:bg-[#FFD700] hover:text-black transition-all"
               active-class="bg-[#FFD700] text-black"
               @click="closeMobileMenu"

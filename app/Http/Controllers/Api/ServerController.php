@@ -31,4 +31,23 @@ class ServerController extends Controller
 
         return response()->json($servers);
     }
+
+    public function publicIndex(): JsonResponse
+    {
+        $servers = XrayServer::query()
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get()
+            ->map(fn ($server) => [
+                'id' => $server->id,
+                'name' => $server->name,
+                'country' => $server->country,
+                'country_name' => $server->country_name,
+                'country_flag' => $server->country_flag,
+                'city' => $server->city,
+                'status' => $server->status ?? 'unknown',
+            ]);
+
+        return response()->json($servers);
+    }
 }

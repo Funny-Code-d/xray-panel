@@ -28,6 +28,7 @@ Route::get('/xray/config', [XrayConfigController::class, 'show']);
 Route::get('/posts', [PostController::class, 'index']);
 Route::get('/posts/{slug}', [PostController::class, 'show']);
 Route::get('/tags', [TagController::class, 'index']);
+Route::get('/servers/public', [ServerController::class, 'publicIndex']);
 
 /*
 |--------------------------------------------------------------------------

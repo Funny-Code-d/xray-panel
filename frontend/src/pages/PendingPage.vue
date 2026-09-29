@@ -18,7 +18,7 @@ async function refreshStatus() {
   try {
     await auth.fetchMe()
     if (auth.isApproved) {
-      router.push({ name: 'dashboard' })
+      router.push({ name: 'home' })
     }
   } catch (e) {
     // ignore
