@@ -26,12 +26,10 @@ class ResetPasswordNotification extends Notification
             . '&email=' . urlencode($notifiable->email);
 
         return (new MailMessage)
-            ->subject('Сброс пароля — VPN Panel')
-            ->greeting('Здравствуйте, ' . $notifiable->first_name . '!')
-            ->line('Вы запросили сброс пароля в VPN Panel.')
-            ->action('Сбросить пароль', $url)
-            ->line('Ссылка действительна 60 минут.')
-            ->line('Если вы не запрашивали сброс — проигнорируйте это письмо.')
-            ->salutation('VPN Panel');
+            ->subject('Сброс пароля — FunnyNodes')
+            ->view('emails.reset-password', [
+                'user' => $notifiable,
+                'url' => $url,
+            ]);
     }
 }
