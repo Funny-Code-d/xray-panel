@@ -1,0 +1,22 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  # Сам Prometheus
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Node Exporter (системные метрики хоста)
+  - job_name: 'node_exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+
+  # Панель FunnyNodes (Laravel)
+  # Если мониторинг в той же Docker-сети, что и приложение — используй имя контейнера
+  # Если на хосте — host.docker.internal или IP
+  - job_name: 'funny-panel'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['host.docker.internal:8000']  # замени на реальный адрес панели
