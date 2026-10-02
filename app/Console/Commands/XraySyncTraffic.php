@@ -4,7 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\VpnClient;
 use App\Models\XrayServer;
-use App\Services\XrayService;
+use App\Services\Xray\XrayService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;

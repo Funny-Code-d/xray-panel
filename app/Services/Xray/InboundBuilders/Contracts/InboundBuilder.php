@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Xray\Builders\Contracts;
+namespace App\Services\Xray\InboundBuilders\Contracts;
 
 use App\Models\XrayServerProtocol;
 

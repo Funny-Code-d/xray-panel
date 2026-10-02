@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Services\Xray\Builders;
+namespace App\Services\Xray\InboundBuilders;
 
 use App\Models\XrayServerProtocol;
-use App\Services\Xray\Builders\Contracts\InboundBuilder;
+use App\Services\Xray\InboundBuilders\Contracts\InboundBuilder;
 
-class VmessBuilder implements InboundBuilder
+class TrojanBuilder implements InboundBuilder
 {
     public function build(XrayServerProtocol $config, array $clients): array
     {
@@ -16,22 +16,22 @@ class VmessBuilder implements InboundBuilder
             'tag' => $config->tag,
             'port' => (int) $config->port,
             'listen' => '0.0.0.0',
-            'protocol' => 'vmess',
+            'protocol' => 'trojan',
             'settings' => [
-                'clients' => $this->buildClients($clients),
+                'clients' => $this->buildClients($clients, $settings),
+                'fallbacks' => [
+                    ['dest' => 80, 'xver' => 0],
+                ],
             ],
             'streamSettings' => [
-                'network' => 'ws',
+                'network' => 'tcp',
                 'security' => 'tls',
                 'tlsSettings' => [
-                    'serverName' => $server->domain,
+                    'serverName' => $server->host,
                     'certificates' => [[
                         'certificateFile' => '/etc/xray/cert.pem',
                         'keyFile' => '/etc/xray/key.pem',
                     ]],
-                ],
-                'wsSettings' => [
-                    'path' => $settings['path'] ?? '/vmess',
                 ],
             ],
             'sniffing' => [
@@ -41,12 +41,11 @@ class VmessBuilder implements InboundBuilder
         ];
     }
 
-    private function buildClients(array $clients): array
+    private function buildClients(array $clients, array $settings): array
     {
         return array_map(fn ($c) => [
-            'id' => $c['uuid'],
-            'alterId' => 0,
-            'email' => $c['email'] . '@vmess',
+            'password' => $c['trojan_password'] ?? $settings['password'],
+            'email' => $c['email'],
         ], $clients);
     }
 }

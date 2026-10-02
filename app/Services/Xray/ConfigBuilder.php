@@ -3,10 +3,10 @@
 namespace App\Services\Xray;
 
 use App\Models\XrayServer;
-use App\Services\Xray\Builders\Contracts\InboundBuilder;
-use App\Services\Xray\Builders\VlessBuilder;
-use App\Services\Xray\Builders\VmessBuilder;
-use App\Services\Xray\Builders\TrojanBuilder;
+use App\Services\Xray\InboundBuilders\Contracts\InboundBuilder;
+use App\Services\Xray\InboundBuilders\VlessBuilder;
+use App\Services\Xray\InboundBuilders\VmessBuilder;
+use App\Services\Xray\InboundBuilders\TrojanBuilder;
 
 class ConfigBuilder
 {
@@ -48,7 +48,7 @@ class ConfigBuilder
             ],
             'stats' => (object) [],
             'policy' => [
-                'levels' => [
+                'levels' => (object) [
                     '0' => [
                         'statsUserUplink' => true,
                         'statsUserDownlink' => true,

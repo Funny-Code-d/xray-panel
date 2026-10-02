@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\Xray;
 
 use App\Models\XrayServer;
 use Illuminate\Support\Facades\Log;
@@ -175,97 +175,5 @@ class XrayService
         }
 
         return $data;
-    }
-
-    /**
-     * Добавить пользователя в работающий Xray (zero-downtime).
-     */
-    public function addUser(string $inboundTag, string $uuid, string $email): bool
-    {
-        // Находим сервер по inbound_tag, чтобы узнать port/protocol
-        $server = \App\Models\XrayServer::where('inbound_tag', $inboundTag)->first();
-
-        if (!$server) {
-            Log::error('Xray addUser: server not found for tag', ['tag' => $inboundTag]);
-            return false;
-        }
-
-        $payload = [
-            'inbounds' => [
-                [
-                    'tag' => $inboundTag,
-                    'protocol' => $server->protocol,           // ← vless
-                    'port' => $server->port,                   // ← 443
-                    'listen' => '0.0.0.0',                     // ← обязательно
-                    'settings' => [
-                        'clients' => [
-                            [
-                                'id' => $uuid,
-                                'flow' => $server->flow ?: 'xtls-rprx-vision',
-                                'email' => $email,
-                            ],
-                        ],
-                        'decryption' => 'none',                 // ← для VLESS
-                    ],
-                ],
-            ],
-        ];
-
-        $json = json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-
-        $result = Process::input($json)->run([
-            $this->binary,
-            'api', 'adi',
-            '--server=' . $this->apiServer,
-        ]);
-
-        if ($result->failed()) {
-            Log::error('Xray addUser failed', [
-                'uuid' => $uuid,
-                'email' => $email,
-                'error' => $result->errorOutput() ?: $result->output(),
-            ]);
-            return false;
-        }
-
-        return true;
-    }
-
-    /**
-     * Удалить пользователя из работающего Xray.
-     */
-    public function removeUser(string $inboundTag, string $email): bool
-    {
-        $server = \App\Models\XrayServer::where('inbound_tag', $inboundTag)->first();
-
-        if (!$server) {
-            return false;
-        }
-
-        $payload = [
-            'inbounds' => [
-                [
-                    'tag' => $inboundTag,
-                    'protocol' => $server->protocol,
-                    'port' => $server->port,
-                    'listen' => '0.0.0.0',
-                    'settings' => [
-                        'clients' => [
-                            ['email' => $email],
-                        ],
-                    ],
-                ],
-            ],
-        ];
-
-        $json = json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-
-        $result = Process::input($json)->run([
-            $this->binary,
-            'api', 'rmi',
-            '--server=' . $this->apiServer,
-        ]);
-
-        return $result->successful();
     }
 }

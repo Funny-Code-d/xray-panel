@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Services\Xray\Builders;
+namespace App\Services\Xray\InboundBuilders;
 
 use App\Models\XrayServerProtocol;
-use App\Services\Xray\Builders\Contracts\InboundBuilder;
+use App\Services\Xray\InboundBuilders\Contracts\InboundBuilder;
 
 class VlessBuilder implements InboundBuilder
 {
@@ -46,7 +46,7 @@ class VlessBuilder implements InboundBuilder
         return array_map(fn ($c) => [
             'id' => $c['uuid'],
             'flow' => $flow,
-            'email' => $c['email'] . '@vless',
+            'email' => $c['email'],
         ], $clients);
     }
 }

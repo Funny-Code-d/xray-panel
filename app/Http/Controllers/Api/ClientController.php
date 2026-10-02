@@ -5,35 +5,31 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\VpnClient;
 use App\Models\XrayServer;
-use App\Services\XrayService;
-use App\Services\XrayAgentService;
-
+use App\Services\Xray\LinkGenerator;
+use App\Services\Xray\XrayAgentService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
-
 
 class ClientController extends Controller
 {
-    /**
-     * Список ключей текущего пользователя.
-     * Для админа — все ключи.
-     */
+    public function __construct(
+        private readonly LinkGenerator $linkGenerator,
+        private readonly XrayAgentService $agentService,
+    ) {}
+
     public function index(Request $request): JsonResponse
     {
         $user = $request->user();
 
         $query = VpnClient::query()->with([
             'user:id,first_name,last_name,email',
-            'xrayServer',  // ← добавлено: нужно для vless_link
+            'xrayServer.protocols',
         ]);
 
-        // Обычный пользователь видит только свои ключи
-        if (! $user->isAdmin()) {
+        if (!$user->isAdmin()) {
             $query->where('user_id', $user->id);
         }
 
-        // Фильтр по активности (опционально)
         if ($request->has('is_active')) {
             $query->where('is_active', $request->boolean('is_active'));
         }
@@ -43,9 +39,6 @@ class ClientController extends Controller
         return response()->json($clients);
     }
 
-    /**
-     * Создать новый ключ.
-     */
     public function store(Request $request): JsonResponse
     {
         $user = $request->user();
@@ -61,18 +54,12 @@ class ClientController extends Controller
             ? $validated['user_id']
             : $user->id;
 
-        // Выбор сервера
-        if (!empty($validated['xray_server_id'])) {
-            $server = XrayServer::where('is_active', true)
-                ->find($validated['xray_server_id']);
-        } else {
-            $server = XrayServer::where('is_active', true)->first();
-        }
+        $server = !empty($validated['xray_server_id'])
+            ? XrayServer::where('is_active', true)->find($validated['xray_server_id'])
+            : XrayServer::where('is_active', true)->first();
 
         if (!$server) {
-            return response()->json([
-                'message' => 'Нет доступных Xray-серверов.',
-            ], 503);
+            return response()->json(['message' => 'Нет доступных Xray-серверов.'], 503);
         }
 
         $client = VpnClient::create([
@@ -83,32 +70,22 @@ class ClientController extends Controller
         ]);
 
         $client->refresh();
-        $client->load(['user:id,first_name,last_name,email', 'xrayServer']);
+        $client->load(['user:id,first_name,last_name,email', 'xrayServer.protocols']);
 
-        // Hot-reload Xray через агента
-        app(XrayAgentService::class)->restartXray($server);
+        $this->agentService->restartXray($server);
 
         return response()->json($client, 201);
     }
 
-    /**
-     * Показать конкретный ключ.
-     */
     public function show(Request $request, VpnClient $client): JsonResponse
     {
         $this->authorizeAccess($request, $client);
 
-        $client->load([
-            'user:id,first_name,last_name,email',
-            'xrayServer',  // ← добавлено
-        ]);
+        $client->load(['user:id,first_name,last_name,email', 'xrayServer.protocols']);
 
         return response()->json($client);
     }
 
-    /**
-     * Обновить ключ.
-     */
     public function update(Request $request, VpnClient $client): JsonResponse
     {
         $this->authorizeAccess($request, $client);
@@ -125,16 +102,13 @@ class ClientController extends Controller
         if (isset($validated['is_active']) && $validated['is_active'] !== $wasActive) {
             $client->load('xrayServer');
             if ($client->xrayServer) {
-                app(XrayAgentService::class)->restartXray($client->xrayServer);
+                $this->agentService->restartXray($client->xrayServer);
             }
         }
 
         return response()->json($client);
     }
 
-    /**
-     * Удалить ключ.
-     */
     public function destroy(Request $request, VpnClient $client): JsonResponse
     {
         $this->authorizeAccess($request, $client);
@@ -142,7 +116,7 @@ class ClientController extends Controller
         $client->load('xrayServer');
 
         if ($client->xrayServer) {
-            app(XrayAgentService::class)->restartXray($client->xrayServer);
+            $this->agentService->restartXray($client->xrayServer);
         }
 
         $client->delete();
@@ -151,37 +125,38 @@ class ClientController extends Controller
     }
 
     /**
-     * Получить конфиг для подключения.
-     * Возвращает и vmess, и vless ссылки (если применимо).
+     * Получить ссылки для подключения по всем включённым протоколам сервера.
      */
     public function config(Request $request, VpnClient $client): JsonResponse
     {
         $this->authorizeAccess($request, $client);
 
-        $client->load('xrayServer');
+        $client->load('xrayServer.enabledProtocols');
 
-        $protocol = $client->xrayServer?->protocol ?? 'vmess';
+        $links = $this->linkGenerator->buildAllForClient($client);
 
         return response()->json([
             'client_id' => $client->id,
             'name' => $client->name,
             'email' => $client->email,
-            'protocol' => $protocol,                              // ← vless | vmess
-            'vmess_link' => $client->vmess_link,
-            'vless_link' => $client->vless_link,
+            'uuid' => $client->uuid,
+            'server' => [
+                'id' => $client->xrayServer?->id,
+                'name' => $client->xrayServer?->name,
+                'host' => $client->xrayServer?->host,
+                'domain' => $client->xrayServer?->domain,
+            ],
+            'links' => $links,
             'is_active' => $client->is_active,
             'expires_at' => $client->expires_at,
         ]);
     }
 
-    /**
-     * Проверка доступа к ключу.
-     */
     private function authorizeAccess(Request $request, VpnClient $client): void
     {
         $user = $request->user();
 
-        if (! $user->isAdmin() && $client->user_id !== $user->id) {
+        if (!$user->isAdmin() && $client->user_id !== $user->id) {
             abort(403, 'Доступ запрещён.');
         }
     }

@@ -1,112 +1,74 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted } from 'vue'
 import AppLayout from '@/components/AppLayout.vue'
-import ClientStatus from '@/components/ClientStatus.vue'
 import Button from '@/components/ui/Button.vue'
-import IconButton from '@/components/ui/IconButton.vue'
+import ClientCard from '@/components/client/ClientCard.vue'
+import ClientEditorModal from '@/components/client/ClientEditorModal.vue'
+import ClientConfigModal from '@/components/client/ClientConfigModal.vue'
 import ConfirmModal from '@/components/ui/ConfirmModal.vue'
-import CreateClientModal from '@/components/CreateClientModal.vue'
-import QrCodeModal from '@/components/QrCodeModal.vue'
 import api from '@/api/axios'
-import { formatBytes, formatDate } from '@/utils/format'
 
 const clients = ref([])
+const servers = ref([])
 const loading = ref(true)
 const error = ref(null)
-const pagination = ref({
-  current_page: 1,
-  last_page: 1,
-  total: 0,
-})
 
-// Модалки
-const showCreateModal = ref(false)
-const showQrModal = ref(false)
-const showDeleteModal = ref(false)
-const selectedClientId = ref(null)
+const showEditor = ref(false)
+const editingClient = ref(null)
+
+const showConfig = ref(false)
+const configClient = ref(null)
+
+const showDelete = ref(false)
 const clientToDelete = ref(null)
 const deleting = ref(false)
 
-// Копирование
-const copiedId = ref(null)
-
-async function fetchClients(page = 1) {
+async function fetchClients() {
   loading.value = true
   error.value = null
 
   try {
-    const { data } = await api.get('/clients', { params: { page } })
-    clients.value = data.data
-    pagination.value = {
-      current_page: data.current_page,
-      last_page: data.last_page,
-      total: data.total,
-    }
+    const { data } = await api.get('/clients')
+    clients.value = data.data ?? data
   } catch (e) {
     error.value = 'Не удалось загрузить ключи'
-    console.error(e)
   } finally {
     loading.value = false
   }
 }
 
-onMounted(() => fetchClients())
-
-const hasClients = computed(() => clients.value.length > 0)
-
-// Создание
-function onClientCreated(client) {
-  clients.value.unshift(client)
-  pagination.value.total++
-}
-
-// QR
-function openQr(client) {
-  selectedClientId.value = client.id
-  showQrModal.value = true
-}
-
-// Копирование ссылки
-async function copyLink(client) {
+async function fetchServers() {
   try {
-    const { data } = await api.get(`/clients/${client.id}/config`)
-
-    const link = data.protocol === 'vless'
-      ? data.vless_link
-      : data.vmess_link
-
-    if (!link) {
-      alert('Ссылка недоступна')
-      return
-    }
-
-    await copyToClipboard(link)
-    copiedId.value = client.id
-    setTimeout(() => { copiedId.value = null }, 2000)
+    const { data } = await api.get('/servers')
+    servers.value = data
   } catch (e) {
-    alert('Не удалось скопировать ссылку')
+    console.error(e)
   }
 }
 
-async function copyToClipboard(text) {
-  if (navigator.clipboard && window.isSecureContext) {
-    return navigator.clipboard.writeText(text)
-  }
+onMounted(() => {
+  fetchClients()
+  fetchServers()
+})
 
-  const textarea = document.createElement('textarea')
-  textarea.value = text
-  textarea.style.position = 'fixed'
-  textarea.style.opacity = '0'
-  document.body.appendChild(textarea)
-  textarea.select()
-  document.execCommand('copy')
-  document.body.removeChild(textarea)
+function openCreate() {
+  editingClient.value = null
+  showEditor.value = true
 }
 
-// Удаление
+function openEdit(client) {
+  editingClient.value = client
+  showEditor.value = true
+}
+
+function openConfig(client) {
+  configClient.value = client
+  showConfig.value = true
+}
+
 function confirmDelete(client) {
   clientToDelete.value = client
-  showDeleteModal.value = true
+  showDelete.value = true
 }
 
 async function handleDelete() {
@@ -116,11 +78,10 @@ async function handleDelete() {
   try {
     await api.delete(`/clients/${clientToDelete.value.id}`)
     clients.value = clients.value.filter(c => c.id !== clientToDelete.value.id)
-    pagination.value.total--
-    showDeleteModal.value = false
+    showDelete.value = false
     clientToDelete.value = null
   } catch (e) {
-    alert('Не удалось удалить ключ')
+    alert(e.response?.data?.message || 'Не удалось удалить ключ')
   } finally {
     deleting.value = false
   }
@@ -129,217 +90,69 @@ async function handleDelete() {
 
 <template>
   <AppLayout>
-    <!-- Заголовок -->
-    <div class="flex justify-between items-end mb-8 flex-wrap gap-4">
-      <div>
-        <h1 class="text-3xl font-black uppercase tracking-wider">Мои ключи</h1>
-        <p class="mt-2 text-sm opacity-70">Всего: {{ pagination.total }}</p>
-      </div>
-      <Button variant="primary" @click="showCreateModal = true">
-        + Создать ключ
+    <div class="mb-8">
+      <h1 class="text-5xl sm:text-6xl font-black uppercase tracking-wider leading-none">
+        Keys
+      </h1>
+      <p class="mt-3 text-base opacity-70">
+        Управление доступом и подключениями
+      </p>
+    </div>
+
+    <div class="flex justify-between items-end mb-6 flex-wrap gap-4">
+      <p class="text-sm opacity-70">Всего: {{ clients.length }}</p>
+      <Button variant="primary" @click="openCreate">
+        + Новый ключ
       </Button>
     </div>
 
-    <!-- Loading -->
-    <div v-if="loading" class="text-center py-12 opacity-70">
-      Загрузка...
+    <div v-if="loading" class="text-center py-12 opacity-70 text-sm">
+      Loading...
     </div>
 
-    <!-- Error -->
     <div
       v-else-if="error"
-      class="bg-red-100 dark:bg-red-900 border-2 border-red-700 dark:border-red-400 shadow-brutal p-6 text-center"
+      class="bg-red-100 dark:bg-red-900 border-[3px] border-red-700 dark:border-red-400 p-6 text-center"
     >
       <p class="font-bold">{{ error }}</p>
-      <Button variant="secondary" class="mt-4" @click="fetchClients()">
-        Попробовать снова
-      </Button>
     </div>
 
-    <!-- Empty -->
     <div
-      v-else-if="!hasClients"
+      v-else-if="clients.length === 0"
       class="bg-white dark:bg-[#1A1A1A] border-[3px] border-black dark:border-white shadow-brutal p-12 text-center"
     >
-      <p class="text-xl font-bold mb-2">У вас пока нет ключей</p>
-      <p class="text-sm opacity-70 mb-6">Создайте первый ключ, чтобы начать пользоваться VPN</p>
-      <Button variant="primary" @click="showCreateModal = true">
-        + Создать ключ
-      </Button>
+      <p class="text-2xl font-black uppercase tracking-wider mb-2">No keys yet</p>
+      <p class="text-sm opacity-70 mb-6">Создайте первый ключ, чтобы подключиться</p>
+      <Button variant="primary" @click="openCreate">+ Новый ключ</Button>
     </div>
 
-    <!-- Список -->
-    <div v-else class="space-y-4">
-      <!-- Десктоп: таблица -->
-      <div class="hidden md:block bg-white dark:bg-[#1A1A1A] border-[3px] border-black dark:border-white shadow-brutal overflow-hidden">
-        <table class="w-full">
-          <thead class="border-b-2 border-black dark:border-white bg-slate-50 dark:bg-[#1a0b2e]">
-            <tr>
-              <th class="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Имя</th>
-              <th class="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Email</th>
-              <th class="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Сервер</th>
-              <th class="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Статус</th>
-              <th class="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Трафик</th>
-              <th class="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Срок</th>
-              <th class="px-4 py-3 text-right text-xs font-bold uppercase tracking-wider">Действия</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr
-              v-for="(client, index) in clients"
-              :key="client.id"
-              class="animate-list-item border-b-2 border-black/10 dark:border-white/10 last:border-0 hover:bg-slate-50 dark:hover:bg-[#1a0b2e]"
-              :style="{ animationDelay: `${Math.min(index, 10) * 30}ms` }"
-            >
-              <td class="px-4 py-3 font-bold">{{ client.name }}</td>
-              <td class="px-4 py-3 text-sm font-mono opacity-70">{{ client.email }}</td>
-              <!-- Сервер -->
-              <td class="px-4 py-3">
-                <span
-                  v-if="client.xray_server"
-                  class="inline-flex items-center gap-1.5 px-2 py-0.5 text-xs font-bold uppercase tracking-wider border-2 border-black dark:border-white"
-                  :title="`${client.xray_server.host}:${client.xray_server.port}`"
-                >
-                  <span>{{ client.xray_server.country_flag }}</span>
-                  <span class="truncate max-w-[100px]">{{ client.xray_server.name }}</span>
-                </span>
-                <span v-else class="text-xs opacity-50">—</span>
-              </td>
-              <td class="px-4 py-3">
-                <ClientStatus :client="client" />
-              </td>
-              <td class="px-4 py-3 text-sm">{{ formatBytes(client.traffic_used) }}</td>
-              <td class="px-4 py-3 text-sm">{{ formatDate(client.expires_at) }}</td>
-              <td class="px-4 py-3">
-                <div class="flex justify-end gap-2">
-                  <!-- QR -->
-                  <IconButton title="QR-код" @click="openQr(client)">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="square" stroke-linejoin="miter">
-                      <rect x="3" y="3" width="7" height="7" />
-                      <rect x="14" y="3" width="7" height="7" />
-                      <rect x="3" y="14" width="7" height="7" />
-                      <path d="M14 14h3v3h-3zM18 18h3v3h-3z" />
-                    </svg>
-                  </IconButton>
-
-                  <!-- Копировать -->
-                  <IconButton title="Скопировать ссылку" @click="copyLink(client)">
-                    <svg v-if="copiedId !== client.id" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="square" stroke-linejoin="miter">
-                      <rect x="9" y="9" width="13" height="13" />
-                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-                    </svg>
-                    <svg v-else xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="square">
-                      <path d="M20 6L9 17l-5-5" />
-                    </svg>
-                  </IconButton>
-
-                  <!-- Удалить -->
-                  <IconButton variant="danger" title="Удалить" @click="confirmDelete(client)">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="square">
-                      <path d="M18 6L6 18M6 6l12 12" />
-                    </svg>
-                  </IconButton>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <!-- Мобильный: карточки -->
-      <div class="md:hidden space-y-4">
-        <div
-          v-for="(client, index) in clients"
-          :key="client.id"
-          class="animate-list-item bg-white dark:bg-[#1A1A1A] border-[3px] border-black dark:border-white shadow-brutal p-4"
-          :style="{ animationDelay: `${Math.min(index, 10) * 30}ms` }"
-        >
-          <div class="flex justify-between items-start mb-3">
-            <div class="min-w-0">
-              <p class="font-bold text-lg truncate">{{ client.name }}</p>
-              <p class="text-xs font-mono opacity-70 truncate">{{ client.email }}</p>
-              <div v-if="client.xray_server" class="flex items-center gap-1.5 mt-1 text-xs">
-                <span>{{ client.xray_server.country_flag }}</span>
-                <span class="font-bold uppercase tracking-wider truncate">{{ client.xray_server.name }}</span>
-              </div>
-            </div>
-            <ClientStatus :client="client" class="ml-2 shrink-0" />
-          </div>
-
-          <div class="grid grid-cols-2 gap-2 text-sm mb-4">
-            <div>
-              <p class="text-xs opacity-60 uppercase tracking-wider">Трафик</p>
-              <p class="font-bold">{{ formatBytes(client.traffic_used) }}</p>
-            </div>
-            <div>
-              <p class="text-xs opacity-60 uppercase tracking-wider">Срок</p>
-              <p class="font-bold">{{ formatDate(client.expires_at) }}</p>
-            </div>
-          </div>
-
-          <div class="flex gap-2">
-            <IconButton title="QR-код" class="flex-1 !w-auto" @click="openQr(client)">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="square" stroke-linejoin="miter">
-                <rect x="3" y="3" width="7" height="7" />
-                <rect x="14" y="3" width="7" height="7" />
-                <rect x="3" y="14" width="7" height="7" />
-                <path d="M14 14h3v3h-3zM18 18h3v3h-3z" />
-              </svg>
-            </IconButton>
-
-            <IconButton title="Скопировать ссылку" class="flex-1 !w-auto" @click="copyLink(client)">
-              <svg v-if="copiedId !== client.id" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="square" stroke-linejoin="miter">
-                <rect x="9" y="9" width="13" height="13" />
-                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-              </svg>
-              <svg v-else xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="square">
-                <path d="M20 6L9 17l-5-5" />
-              </svg>
-            </IconButton>
-
-            <IconButton variant="danger" title="Удалить" @click="confirmDelete(client)">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="square">
-                <path d="M18 6L6 18M6 6l12 12" />
-              </svg>
-            </IconButton>
-          </div>
-        </div>
-      </div>
-
-      <!-- Пагинация -->
-      <div
-        v-if="pagination.last_page > 1"
-        class="flex justify-center items-center gap-4 pt-4"
-      >
-        <Button
-          variant="secondary"
-          size="sm"
-          :disabled="pagination.current_page === 1"
-          @click="fetchClients(pagination.current_page - 1)"
-        >
-          ← Назад
-        </Button>
-        <span class="text-sm font-bold">
-          {{ pagination.current_page }} / {{ pagination.last_page }}
-        </span>
-        <Button
-          variant="secondary"
-          size="sm"
-          :disabled="pagination.current_page === pagination.last_page"
-          @click="fetchClients(pagination.current_page + 1)"
-        >
-          Вперёд →
-        </Button>
-      </div>
+    <div v-else class="space-y-3">
+      <ClientCard
+        v-for="client in clients"
+        :key="client.id"
+        :client="client"
+        @show-config="openConfig"
+        @edit="openEdit"
+        @delete="confirmDelete"
+      />
     </div>
 
-    <!-- Модалки -->
-    <CreateClientModal v-model="showCreateModal" @created="onClientCreated" />
-    <QrCodeModal v-model="showQrModal" :client-id="selectedClientId" />
+    <ClientEditorModal
+      v-model="showEditor"
+      :client="editingClient"
+      :servers="servers"
+      @saved="fetchClients"
+    />
+
+    <ClientConfigModal
+      v-model="showConfig"
+      :client="configClient"
+    />
+
     <ConfirmModal
-      v-model="showDeleteModal"
+      v-model="showDelete"
       title="Удалить ключ?"
-      :message="`Ключ «${clientToDelete?.name}» будет удалён безвозвратно. Продолжить?`"
+      :message="`Ключ «${clientToDelete?.name}» будет удалён. Продолжить?`"
       confirm-text="Удалить"
       :loading="deleting"
       @confirm="handleDelete"

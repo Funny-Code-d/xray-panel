@@ -9,6 +9,17 @@ services:
       API_TOKEN: "${XRAY_API_TOKEN}"
     volumes:
       - xray-logs:/var/log/xray
+      - /etc/xray:/etc/xray
+
+  nginx:
+    image: nginx:alpine
+    container_name: xray-nginx
+    restart: unless-stopped
+    network_mode: host
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./nginx/html:/usr/share/nginx/html:ro
+      - /var/www/certbot:/var/www/certbot:ro
 
 volumes:
   xray-logs:
