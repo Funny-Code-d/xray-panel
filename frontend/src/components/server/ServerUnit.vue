@@ -6,6 +6,10 @@ const props = defineProps({
 })
 
 const isOnline = computed(() => props.server.status === 'online')
+
+const enabledProtocols = computed(() =>
+  (props.server.protocols || []).filter(p => p.is_enabled)
+)
 </script>
 
 <template>
@@ -28,16 +32,28 @@ const isOnline = computed(() => props.server.status === 'online')
       ></span>
     </div>
 
-    <!-- IP -->
-    <div class="font-mono text-xs opacity-70 mb-4">
-      {{ server.host }}:{{ server.port }}
+    <!-- Протоколы -->
+    <div class="flex flex-wrap gap-1.5 mb-4">
+      <span
+        v-for="p in enabledProtocols"
+        :key="p.protocol"
+        class="px-2 py-0.5 text-[10px] font-black uppercase tracking-wider border-2 border-black dark:border-white bg-[#FFD700] text-black"
+      >
+        {{ p.protocol }} : {{ p.port }}
+      </span>
+      <span
+        v-if="enabledProtocols.length === 0"
+        class="text-[10px] font-black uppercase tracking-wider opacity-50"
+      >
+        No protocols
+      </span>
     </div>
 
     <!-- Клиенты + статус -->
     <div class="flex justify-between items-baseline pt-4 border-t-2 border-black/10 dark:border-white/10">
       <div>
         <p class="text-[10px] font-bold uppercase tracking-wider opacity-60">Клиентов</p>
-        <p class="text-2xl font-black">{{ server.vpn_clients_count }}</p>
+        <p class="text-2xl font-black">{{ server.vpn_clients_count ?? 0 }}</p>
       </div>
 
       <span

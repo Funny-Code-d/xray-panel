@@ -121,24 +121,46 @@ async function handleDelete() {
                   :class="[
                     'px-2 py-0.5 text-xs font-bold uppercase border-2',
                     server.is_active
-                      ? 'bg-green-100 text-green-700 border-green-700'
-                      : 'bg-slate-200 text-slate-700 border-slate-700',
+                      ? 'bg-green-100 text-green-700 border-green-700 dark:bg-green-900 dark:text-green-200 dark:border-green-400'
+                      : 'bg-slate-200 text-slate-700 border-slate-700 dark:bg-slate-700 dark:text-slate-200 dark:border-slate-300',
                   ]"
                 >
                   {{ server.is_active ? 'Активен' : 'Отключён' }}
                 </span>
               </div>
 
-              <p class="text-xs font-mono opacity-60 mb-1">
-                {{ server.host }}:{{ server.port }}
+              <p class="text-xs font-mono opacity-60 mb-2">
+                {{ server.host }}
               </p>
-              <p class="text-xs opacity-60">
+              <p class="text-xs opacity-60 mb-3">
                 {{ server.city || '—' }}, {{ server.country_name || '—' }}
               </p>
 
-              <div class="flex gap-4 text-xs opacity-60 mt-2">
+              <!-- Протоколы -->
+              <div class="flex flex-wrap gap-1.5 mb-3">
+                <span
+                  v-for="p in server.protocols"
+                  :key="p.protocol"
+                  class="px-2 py-0.5 text-[10px] font-black uppercase tracking-wider border-2"
+                  :class="p.is_enabled
+                    ? 'bg-[#FFD700] text-black border-black dark:border-white'
+                    : 'bg-slate-200 text-slate-500 border-slate-400 dark:bg-slate-700 dark:text-slate-400 dark:border-slate-500'"
+                >
+                  {{ p.protocol }} : {{ p.port }}
+                </span>
+                <span
+                  v-if="!server.protocols || server.protocols.length === 0"
+                  class="text-[10px] font-black uppercase tracking-wider opacity-50"
+                >
+                  No protocols
+                </span>
+              </div>
+
+              <div class="flex gap-4 text-xs opacity-60">
                 <span>Клиентов: {{ server.vpn_clients_count ?? 0 }}</span>
-                <span>Протокол: {{ server.protocol.toUpperCase() }}</span>
+                <span v-if="server.last_seen_at">
+                  Last seen: {{ new Date(server.last_seen_at).toLocaleDateString() }}
+                </span>
               </div>
             </div>
 
