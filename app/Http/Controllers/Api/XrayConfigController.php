@@ -4,12 +4,16 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\XrayServer;
-use App\Services\XrayConfigBuilder;
+use App\Services\Xray\ConfigBuilder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class XrayConfigController extends Controller
 {
+    public function __construct(
+        private readonly ConfigBuilder $configBuilder,
+    ) {}
+
     public function show(Request $request): JsonResponse
     {
         $token = $request->bearerToken();
@@ -32,7 +36,9 @@ class XrayConfigController extends Controller
             'status' => 'online',
         ]);
 
-        $config = (new XrayConfigBuilder($server))->build();
+        $server->load('enabledProtocols');
+
+        $config = $this->configBuilder->build($server);
 
         return response()->json($config);
     }

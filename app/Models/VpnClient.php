@@ -5,14 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Support\Str;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Str;
 
 class VpnClient extends Model
 {
     use HasFactory;
-
-    protected $appends = ['vmess_link', 'vless_link'];
 
     protected $fillable = [
         'user_id',
@@ -27,6 +25,7 @@ class VpnClient extends Model
         'xray_last_upload',
         'xray_last_downlink',
         'last_synced_at',
+        'trojan_password',
     ];
 
     protected $casts = [
@@ -39,90 +38,41 @@ class VpnClient extends Model
         'last_synced_at' => 'datetime',
     ];
 
-    // Автогенерация UUID при создании
+    // Автогенерация UUID и email при создании
     protected static function booted(): void
     {
         static::creating(function (VpnClient $client) {
             if (empty($client->uuid)) {
                 $client->uuid = (string) Str::uuid();
             }
+            if (empty($client->trojan_password)) {
+                $client->trojan_password = static::generateTrojanPassword();
+            }
         });
-        
+
         static::created(function (VpnClient $client) {
-        if (empty($client->email)) {
-            $client->email = static::generateEmail($client->user_id, $client->id);
-            $client->saveQuietly();  // без событий, чтобы не зациклиться
-        }
-    });
+            if (empty($client->email)) {
+                $client->email = static::generateEmail($client->user_id, $client->id);
+                $client->saveQuietly();
+            }
+        });
     }
+
+    // === Связи ===
 
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    public static function generateEmail(int $userId, ?int $clientId = null): string
+    public function xrayServer(): BelongsTo
     {
-        // Если clientId ещё нет (создание), используем случайный суффикс
-        $suffix = $clientId ?? Str::lower(Str::random(6));
-        
-        return "u{$userId}_k{$suffix}@vpn.local";
+        return $this->belongsTo(XrayServer::class, 'xray_server_id');
     }
 
-    // Хелперы для бизнес-логики
-    
-    public function isExpired(): bool
+    public function server(): BelongsTo
     {
-        return $this->expires_at && $this->expires_at->isPast();
-    }
-
-    public function isUsable(): bool
-    {
-        return $this->is_active 
-            && !$this->isExpired() 
-            && !$this->isTrafficExceeded();
-    }
-
-    public function getTrafficUsedHumanAttribute(): string
-    {
-        return $this->formatBytes($this->traffic_used);
-    }
-
-    /**
-     * Сгенерировать vmess:// ссылку для подключения.
-     */
-    public function getVmessLinkAttribute(): string
-    {
-        $config = config('services.xray');
-
-        $payload = [
-            'v' => '2',
-            'ps' => $this->name,
-            'add' => $config['host'],
-            'port' => (int) $config['port'],           // число, не строка
-            'id' => $this->uuid,
-            'aid' => (int) $config['alter_id'],        // число, не строка
-            'net' => $config['network'],
-            'type' => 'none',
-            'host' => '',                              // ← пустая строка
-            'path' => $config['path'],
-            'tls' => 'none',                           // ← явно "none"
-        ];
-
-        // Если TLS настроен — перезаписываем tls/sni/host
-        if (!empty($config['tls'])) {
-            $payload['tls'] = $config['tls'];
-            $payload['sni'] = $config['sni'] ?: $config['host'];
-            $payload['host'] = $config['host'];         // для TLS host нужен
-        }
-
-        // JSON с человекочитаемым форматом: отступы, кириллица, без экранирования слешей
-        $json = json_encode(
-            $payload,
-            JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT
-        );
-
-        return 'vmess://' . base64_encode($json);
+        return $this->belongsTo(XrayServer::class, 'xray_server_id');
     }
 
     public function trafficStats(): HasMany
@@ -130,21 +80,34 @@ class VpnClient extends Model
         return $this->hasMany(TrafficStat::class);
     }
 
-    public function xrayServer(): BelongsTo
+    // === Хелперы ===
+
+    public static function generateEmail(int $userId, ?int $clientId = null): string
     {
-        return $this->belongsTo(XrayServer::class);
+        $suffix = $clientId ?? Str::lower(Str::random(6));
+
+        return "u{$userId}_k{$suffix}@vpn.local";
     }
 
-    /**
-     * Сгенерировать vless:// ссылку.
-     * Требует загруженной связи xrayServer.
-     */
-    public function getVlessLinkAttribute(): ?string
+    public static function generateTrojanPassword(int $length = 32): string
     {
-        if (!$this->xrayServer) {
-            return null;
-        }
+        return bin2hex(random_bytes($length / 2));
+    }
 
-        return $this->xrayServer->buildVlessLink($this->uuid, $this->name);
+    public function isExpired(): bool
+    {
+        return $this->expires_at && $this->expires_at->isPast();
+    }
+
+    public function isUsable(): bool
+    {
+        return $this->is_active
+            && !$this->isExpired()
+            && !$this->isTrafficExceeded();
+    }
+
+    public function getTrafficUsedHumanAttribute(): string
+    {
+        return $this->formatBytes($this->traffic_used);
     }
 }

@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Api\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\XrayServer;
+use App\Models\XrayServerProtocol;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
 class ServerController extends Controller
@@ -13,6 +15,7 @@ class ServerController extends Controller
     public function index(): JsonResponse
     {
         $servers = XrayServer::query()
+            ->with('protocols')
             ->withCount('vpnClients')
             ->orderBy('name')
             ->get();
@@ -22,77 +25,53 @@ class ServerController extends Controller
 
     public function store(Request $request): JsonResponse
     {
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:100'],
-            'host' => ['required', 'string', 'max:255'],
-            'port' => ['required', 'integer', 'min:1', 'max:65535'],
-            'api_host' => ['nullable', 'string', 'max:255'],
-            'api_port' => ['nullable', 'integer', 'min:1', 'max:65535'],
-            'agent_port' => ['nullable', 'integer', 'min:1', 'max:65535'],
-            'protocol' => ['required', Rule::in(['vless', 'vmess'])],
-            'inbound_tag' => ['required', 'string', 'max:100'],
-            'network' => ['required', Rule::in(['tcp', 'ws', 'grpc'])],
-            'security' => ['required', Rule::in(['none', 'tls', 'reality'])],
-            'flow' => ['nullable', 'string', 'max:50'],
-            'reality_dest' => ['nullable', 'string', 'max:255'],
-            'reality_server_names' => ['nullable', 'array'],
-            'reality_server_names.*' => ['string', 'max:255'],
-            'reality_private_key' => ['nullable', 'string', 'max:255'],
-            'reality_public_key' => ['nullable', 'string', 'max:255'],
-            'reality_short_ids' => ['nullable', 'array'],
-            'reality_short_ids.*' => ['string', 'max:32'],
-            'fingerprint' => ['nullable', 'string', 'max:50'],
-            'country' => ['nullable', 'string', 'size:2'],
-            'country_name' => ['nullable', 'string', 'max:100'],
-            'city' => ['nullable', 'string', 'max:100'],
-            'is_active' => ['sometimes', 'boolean'],
-        ]);
+        $validated = $this->validateServer($request);
 
-        // Генерируем токен, если не передан
-        if (empty($validated['api_token'])) {
-            $validated['api_token'] = XrayServer::generateApiToken();
-        }
+        $server = DB::transaction(function () use ($validated) {
+            $server = XrayServer::create([
+                'name' => $validated['name'],
+                'host' => $validated['host'],
+                'api_host' => $validated['api_host'] ?? '127.0.0.1',
+                'api_port' => $validated['api_port'] ?? 10085,
+                'agent_port' => $validated['agent_port'] ?? 8080,
+                'country' => $validated['country'] ?? null,
+                'country_name' => $validated['country_name'] ?? null,
+                'city' => $validated['city'] ?? null,
+                'is_active' => $validated['is_active'] ?? true,
+                'api_token' => XrayServer::generateApiToken(),
+                'status' => 'unknown',
+            ]);
 
-        $server = XrayServer::create($validated);
+            $this->syncProtocols($server, $validated['protocols']);
 
-        return response()->json($server, 201);
+            return $server;
+        });
+
+        return response()->json($server->load('protocols'), 201);
     }
 
     public function show(XrayServer $server): JsonResponse
     {
-        $server->loadCount('vpnClients');
+        $server->load('protocols')->loadCount('vpnClients');
+
         return response()->json($server);
     }
 
     public function update(Request $request, XrayServer $server): JsonResponse
     {
-        $validated = $request->validate([
-            'name' => ['sometimes', 'string', 'max:100'],
-            'host' => ['sometimes', 'string', 'max:255'],
-            'port' => ['sometimes', 'integer', 'min:1', 'max:65535'],
-            'api_host' => ['nullable', 'string', 'max:255'],
-            'api_port' => ['nullable', 'integer', 'min:1', 'max:65535'],
-            'agent_port' => ['nullable', 'integer', 'min:1', 'max:65535'],
-            'protocol' => ['sometimes', Rule::in(['vless', 'vmess'])],
-            'inbound_tag' => ['sometimes', 'string', 'max:100'],
-            'network' => ['sometimes', Rule::in(['tcp', 'ws', 'grpc'])],
-            'security' => ['sometimes', Rule::in(['none', 'tls', 'reality'])],
-            'flow' => ['nullable', 'string', 'max:50'],
-            'reality_dest' => ['nullable', 'string', 'max:255'],
-            'reality_server_names' => ['nullable', 'array'],
-            'reality_private_key' => ['nullable', 'string', 'max:255'],
-            'reality_public_key' => ['nullable', 'string', 'max:255'],
-            'reality_short_ids' => ['nullable', 'array'],
-            'fingerprint' => ['nullable', 'string', 'max:50'],
-            'country' => ['nullable', 'string', 'size:2'],
-            'country_name' => ['nullable', 'string', 'max:100'],
-            'city' => ['nullable', 'string', 'max:100'],
-            'is_active' => ['sometimes', 'boolean'],
-        ]);
+        $validated = $this->validateServer($request, updating: true);
 
-        $server->update($validated);
+        DB::transaction(function () use ($server, $validated) {
+            // Обновляем общие поля
+            $server->update(collect($validated)->except('protocols')->toArray());
 
-        return response()->json($server->fresh());
+            // Обновляем протоколы, если пришли
+            if (array_key_exists('protocols', $validated)) {
+                $this->syncProtocols($server, $validated['protocols']);
+            }
+        });
+
+        return response()->json($server->fresh('protocols')->loadCount('vpnClients'));
     }
 
     public function destroy(XrayServer $server): JsonResponse
@@ -106,5 +85,82 @@ class ServerController extends Controller
         $server->delete();
 
         return response()->json(['message' => 'Сервер удалён.']);
+    }
+
+    public function rotateToken(XrayServer $server): JsonResponse
+    {
+        $server->update(['api_token' => XrayServer::generateApiToken()]);
+
+        return response()->json(['api_token' => $server->api_token]);
+    }
+
+    /**
+     * Валидация сервера и его протоколов.
+     */
+    private function validateServer(Request $request, bool $updating = false): array
+    {
+        $required = $updating ? 'sometimes' : 'required';
+
+        return $request->validate([
+            // Общие поля
+            'name' => [$required, 'string', 'max:100'],
+            'host' => [$required, 'string', 'max:255'],
+            'api_host' => ['nullable', 'string', 'max:255'],
+            'api_port' => ['nullable', 'integer', 'min:1', 'max:65535'],
+            'agent_port' => ['nullable', 'integer', 'min:1', 'max:65535'],
+            'country' => ['nullable', 'string', 'size:2'],
+            'country_name' => ['nullable', 'string', 'max:100'],
+            'city' => ['nullable', 'string', 'max:100'],
+            'is_active' => ['sometimes', 'boolean'],
+
+            // Протоколы
+            'protocols' => [$required, 'array', 'min:1'],
+            'protocols.*.protocol' => ['required', Rule::in(['vless', 'vmess', 'trojan'])],
+            'protocols.*.is_enabled' => ['sometimes', 'boolean'],
+            'protocols.*.port' => ['required', 'integer', 'min:1', 'max:65535'],
+            'protocols.*.tag' => ['required', 'string', 'max:64'],
+            'protocols.*.settings' => ['nullable', 'array'],
+
+            // VLESS settings
+            'protocols.*.settings.sni' => ['nullable', 'string', 'max:255'],
+            'protocols.*.settings.dest' => ['nullable', 'string', 'max:255'],
+            'protocols.*.settings.private_key' => ['nullable', 'string', 'max:255'],
+            'protocols.*.settings.public_key' => ['nullable', 'string', 'max:255'],
+            'protocols.*.settings.short_id' => ['nullable', 'string', 'max:32'],
+            'protocols.*.settings.flow' => ['nullable', 'string', 'max:50'],
+            'protocols.*.settings.fingerprint' => ['nullable', 'string', 'max:50'],
+
+            // VMess settings
+            'protocols.*.settings.path' => ['nullable', 'string', 'max:255'],
+
+            // Trojan settings
+            'protocols.*.settings.password' => ['nullable', 'string', 'min:16', 'max:255'],
+        ]);
+    }
+
+    /**
+     * Синхронизация протоколов сервера.
+     */
+    private function syncProtocols(XrayServer $server, array $protocols): void
+    {
+        $incoming = collect($protocols)->keyBy('protocol');
+
+        // Удаляем протоколы, которых нет в запросе
+        $server->protocols()
+            ->whereNotIn('protocol', $incoming->keys())
+            ->delete();
+
+        // Upsert по protocol
+        foreach ($incoming as $protocolData) {
+            $server->protocols()->updateOrCreate(
+                ['protocol' => $protocolData['protocol']],
+                [
+                    'is_enabled' => $protocolData['is_enabled'] ?? true,
+                    'port' => $protocolData['port'],
+                    'tag' => $protocolData['tag'],
+                    'settings' => $protocolData['settings'] ?? [],
+                ]
+            );
+        }
     }
 }

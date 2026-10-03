@@ -77,6 +77,8 @@ Route::middleware(['auth:sanctum', 'not_blocked', 'approved'])->group(function (
 
     Route::middleware('admin')->prefix('admin')->group(function () {
         Route::get('/dashboard', [AdminDashboardController::class, 'index']);
+
+        // Users
         Route::get('/users', [AdminUserController::class, 'index']);
         Route::get('/users/{user}', [AdminUserController::class, 'show']);
         Route::patch('/users/{user}', [AdminUserController::class, 'update']);
@@ -84,9 +86,14 @@ Route::middleware(['auth:sanctum', 'not_blocked', 'approved'])->group(function (
         Route::post('/users/{user}/reject', [AdminUserController::class, 'reject']);
         Route::post('/users/{user}/block', [AdminUserController::class, 'block']);
         Route::post('/users/{user}/unblock', [AdminUserController::class, 'unblock']);
+        Route::get('/users/{user}/dashboard', [AdminUserController::class, 'dashboard']);
+
+        // Posts & Tags
         Route::apiResource('posts', AdminPostController::class);
         Route::apiResource('tags', AdminTagController::class);
-        Route::get('/users/{user}/dashboard', [AdminUserController::class, 'dashboard']);
+
+        // Servers
+        Route::post('/servers/{server}/rotate-token', [AdminServerController::class, 'rotateToken']);
         Route::apiResource('servers', AdminServerController::class);
     });
 });

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\Xray;
 
 use App\Models\XrayServer;
 use Illuminate\Support\Facades\Http;

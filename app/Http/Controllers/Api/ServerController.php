@@ -12,6 +12,7 @@ class ServerController extends Controller
     {
         $servers = XrayServer::query()
             ->where('is_active', true)
+            ->with(['protocols', 'enabledProtocols'])
             ->withCount('vpnClients')
             ->orderBy('name')
             ->get()
@@ -19,7 +20,6 @@ class ServerController extends Controller
                 'id' => $server->id,
                 'name' => $server->name,
                 'host' => $server->host,
-                'port' => $server->port,
                 'country' => $server->country,
                 'country_name' => $server->country_name,
                 'country_flag' => $server->country_flag,
@@ -27,6 +27,11 @@ class ServerController extends Controller
                 'status' => $server->status ?? 'unknown',
                 'last_seen_at' => $server->last_seen_at,
                 'vpn_clients_count' => $server->vpn_clients_count,
+                'protocols' => $server->protocols->map(fn ($p) => [
+                    'protocol' => $p->protocol,
+                    'is_enabled' => $p->is_enabled,
+                    'port' => $p->port,
+                ]),
             ]);
 
         return response()->json($servers);
