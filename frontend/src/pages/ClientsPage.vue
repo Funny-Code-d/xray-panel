@@ -13,6 +13,12 @@ const servers = ref([])
 const loading = ref(true)
 const error = ref(null)
 
+const pagination = ref({
+  current_page: 1,
+  last_page: 1,
+  total: 0,
+})
+
 const showEditor = ref(false)
 const editingClient = ref(null)
 
@@ -23,15 +29,33 @@ const showDelete = ref(false)
 const clientToDelete = ref(null)
 const deleting = ref(false)
 
-async function fetchClients() {
+async function fetchClients(page = 1) {
   loading.value = true
   error.value = null
 
   try {
-    const { data } = await api.get('/clients')
-    clients.value = data.data ?? data
+    const { data } = await api.get('/clients', { params: { page } })
+
+    // Laravel pagination
+    if (data.data && Array.isArray(data.data)) {
+      clients.value = data.data
+      pagination.value = {
+        current_page: data.current_page,
+        last_page: data.last_page,
+        total: data.total,
+      }
+    } else {
+      // Fallback
+      clients.value = Array.isArray(data) ? data : []
+      pagination.value = {
+        current_page: 1,
+        last_page: 1,
+        total: clients.value.length,
+      }
+    }
   } catch (e) {
     error.value = 'Не удалось загрузить ключи'
+    console.error(e)
   } finally {
     loading.value = false
   }
@@ -77,7 +101,8 @@ async function handleDelete() {
   deleting.value = true
   try {
     await api.delete(`/clients/${clientToDelete.value.id}`)
-    clients.value = clients.value.filter(c => c.id !== clientToDelete.value.id)
+    // Перезагружаем текущую страницу (если на ней больше нет элементов — Laravel вернёт пусто, можно откатиться)
+    fetchClients(pagination.value.current_page)
     showDelete.value = false
     clientToDelete.value = null
   } catch (e) {
@@ -100,7 +125,7 @@ async function handleDelete() {
     </div>
 
     <div class="flex justify-between items-end mb-6 flex-wrap gap-4">
-      <p class="text-sm opacity-70">Всего: {{ clients.length }}</p>
+      <p class="text-sm opacity-70">Всего: {{ pagination.total }}</p>
       <Button variant="primary" @click="openCreate">
         + Новый ключ
       </Button>
@@ -137,11 +162,37 @@ async function handleDelete() {
       />
     </div>
 
+    <!-- Пагинация -->
+    <div
+      v-if="pagination.last_page > 1"
+      class="flex justify-center items-center gap-4 mt-8"
+    >
+      <button
+        :disabled="pagination.current_page === 1"
+        class="px-4 py-2 text-xs font-black uppercase tracking-wider border-[3px] border-black dark:border-white bg-white dark:bg-[#1A1A1A] disabled:opacity-30 disabled:cursor-not-allowed hover:bg-[#FFD700] hover:text-black transition-colors"
+        @click="fetchClients(pagination.current_page - 1)"
+      >
+        ← Prev
+      </button>
+
+      <span class="text-sm font-black uppercase tracking-wider">
+        {{ pagination.current_page }} / {{ pagination.last_page }}
+      </span>
+
+      <button
+        :disabled="pagination.current_page === pagination.last_page"
+        class="px-4 py-2 text-xs font-black uppercase tracking-wider border-[3px] border-black dark:border-white bg-white dark:bg-[#1A1A1A] disabled:opacity-30 disabled:cursor-not-allowed hover:bg-[#FFD700] hover:text-black transition-colors"
+        @click="fetchClients(pagination.current_page + 1)"
+      >
+        Next →
+      </button>
+    </div>
+
     <ClientEditorModal
       v-model="showEditor"
       :client="editingClient"
       :servers="servers"
-      @saved="fetchClients"
+      @saved="fetchClients(pagination.current_page)"
     />
 
     <ClientConfigModal
