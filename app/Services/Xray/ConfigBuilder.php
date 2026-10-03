@@ -30,6 +30,16 @@ class ConfigBuilder
         $clients = $this->getClients($server);
         $inbounds = [];
 
+        $inbounds[] = [
+            'tag' => 'api',
+            'listen' => '0.0.0.0',
+            'port' => (int) $server->api_port,
+            'protocol' => 'dokodemo-door',
+            'settings' => [
+                'address' => '127.0.0.1',
+            ],
+        ];
+
         foreach ($server->enabledProtocols as $config) {
             $builder = $this->builders[$config->protocol] ?? null;
 
