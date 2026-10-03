@@ -30,6 +30,7 @@ class ConfigBuilder
         $clients = $this->getClients($server);
         $inbounds = [];
 
+        // API inbound
         $inbounds[] = [
             'tag' => 'api',
             'listen' => '0.0.0.0',
@@ -42,11 +43,9 @@ class ConfigBuilder
 
         foreach ($server->enabledProtocols as $config) {
             $builder = $this->builders[$config->protocol] ?? null;
-
             if ($builder === null) {
                 continue;
             }
-
             $inbounds[] = $builder->build($config, $clients);
         }
 
@@ -76,8 +75,21 @@ class ConfigBuilder
             ],
             'routing' => [
                 'rules' => [
-                    ['type' => 'field', 'ip' => ['geoip:private'], 'outboundTag' => 'blocked'],
-                    ['type' => 'field', 'protocol' => ['bittorrent'], 'outboundTag' => 'blocked'],
+                    [
+                        'type' => 'field',
+                        'inboundTag' => ['api'],
+                        'outboundTag' => 'api',
+                    ],
+                    [
+                        'type' => 'field',
+                        'ip' => ['geoip:private'],
+                        'outboundTag' => 'blocked',
+                    ],
+                    [
+                        'type' => 'field',
+                        'protocol' => ['bittorrent'],
+                        'outboundTag' => 'blocked',
+                    ],
                 ],
             ],
         ];
