@@ -18,9 +18,9 @@ class VlessLinkBuilder implements LinkBuilder
         $server = $protocol->server;
 
         $params = [
-            'type' => 'xhttp',                 // Меняем с 'tcp' на 'xhttp'
+            'type' => 'xhttp',
             'security' => 'reality',
-            'flow' => $protocol->getSetting('flow', 'xtls-rprx-vision'),
+            // 'flow' => $protocol->getSetting('flow', 'xtls-rprx-vision'),
             'sni' => $protocol->getSetting('sni'),
             'fp' => $protocol->getSetting('fingerprint', 'firefox'),
             'pbk' => $protocol->getSetting('public_key'),

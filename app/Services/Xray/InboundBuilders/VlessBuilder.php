@@ -50,7 +50,7 @@ class VlessBuilder implements InboundBuilder
 
         return array_map(fn ($c) => [
             'id' => $c['uuid'],
-            'flow' => $flow,
+            // 'flow' => $flow,
             'email' => $c['email'],
         ], $clients);
     }
