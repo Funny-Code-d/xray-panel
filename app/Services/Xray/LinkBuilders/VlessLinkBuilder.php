@@ -18,7 +18,7 @@ class VlessLinkBuilder implements LinkBuilder
         $server = $protocol->server;
 
         $params = [
-            'type' => 'tcp',
+            'type' => 'xhttp',                 // Меняем с 'tcp' на 'xhttp'
             'security' => 'reality',
             'flow' => $protocol->getSetting('flow', 'xtls-rprx-vision'),
             'sni' => $protocol->getSetting('sni'),
@@ -26,6 +26,8 @@ class VlessLinkBuilder implements LinkBuilder
             'pbk' => $protocol->getSetting('public_key'),
             'sid' => $protocol->getSetting('short_id'),
             'spx' => '/',
+            'path' => '/api/v1/updates',
+            'mode' => 'stream-one',
         ];
 
         $query = http_build_query($params, '', '&', PHP_QUERY_RFC3986);
