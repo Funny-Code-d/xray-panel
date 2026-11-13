@@ -11,6 +11,12 @@ class VlessBuilder implements InboundBuilder
     {
         $settings = $config->settings;
 
+        // Гарантируем, что dest содержит порт (Xray требует host:port для Reality)
+        $dest = $settings['dest'] ?? 'dl.google.com:443';
+        if (!str_contains($dest, ':')) {
+            $dest .= ':443';
+        }
+
         return [
             'tag' => $config->tag,
             'port' => (int) $config->port,
@@ -25,16 +31,16 @@ class VlessBuilder implements InboundBuilder
                 'security' => 'reality',
                 'realitySettings' => [
                     'show' => false,
-                    'dest' => $settings['dest'],
+                    'dest' => $dest, // Используем исправленный dest с портом
                     'xver' => 0,
-                    'serverNames' => [$settings['sni']],
+                    'serverNames' => [$settings['sni'] ?? 'dl.google.com'],
                     'privateKey' => $settings['private_key'],
                     'shortIds' => [$settings['short_id']],
                 ],
-                // Добавляем настройки XHTTP
                 'xhttpSettings' => [
                     'mode' => 'stream-one',
                     'path' => '/api/v1/updates',
+                    'host' => '', // Явно указываем host, чтобы избежать ошибок валидации
                 ],
             ],
             'sniffing' => [
@@ -46,11 +52,8 @@ class VlessBuilder implements InboundBuilder
 
     private function buildClients(array $clients, array $settings): array
     {
-        $flow = $settings['flow'] ?? 'xtls-rprx-vision';
-
         return array_map(fn ($c) => [
             'id' => $c['uuid'],
-            // 'flow' => $flow,
             'email' => $c['email'],
         ], $clients);
     }
